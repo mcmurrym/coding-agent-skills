@@ -1,0 +1,4 @@
+interface:
+  display_name: "Linear Start Work"
+  short_description: "Start work from a Linear issue fast"
+  default_prompt: "Use this skill to start work from a Linear issue link or key: load full issue context, create and push a branch from the issue slug, then move it to In Progress."

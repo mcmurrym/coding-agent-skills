@@ -1,0 +1,4 @@
+interface:
+  display_name: "Back To Main"
+  short_description: "Fetch with prune, switch to main, and pull latest changes."
+  default_prompt: "Return this repo to main by running a pruning fetch, checking out main, and pulling the latest updates safely."

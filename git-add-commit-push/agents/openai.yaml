@@ -1,0 +1,4 @@
+interface:
+  display_name: "Git Add Commit Push"
+  short_description: "Stage, commit, push with safe checks"
+  default_prompt: "Use $git-add-commit-push to auto-generate a commit message and run a zero-input add/commit/push."

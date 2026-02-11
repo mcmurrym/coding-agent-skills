@@ -1,0 +1,4 @@
+interface:
+  display_name: "Make PR"
+  short_description: "Create PRs with branch summaries"
+  default_prompt: "Use -pr to create a PR from the current branch with a concise summary as the description."

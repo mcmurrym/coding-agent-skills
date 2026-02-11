@@ -1,0 +1,4 @@
+interface:
+  display_name: "CodeRabbit Review"
+  short_description: "Run CodeRabbit review from Codex"
+  default_prompt: "Use $coderabbit-codex-review to run CodeRabbit CLI against my current branch and summarize findings."

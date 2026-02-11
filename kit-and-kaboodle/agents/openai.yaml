@@ -1,0 +1,4 @@
+interface:
+  display_name: "Kit and Kaboodle"
+  short_description: "Run full Linear issue-to-PR workflow"
+  default_prompt: "Use this skill to take a Linear issue link or key, run linear-start-work, propose an implementation, wait for approval, do the work, then offer make-pr and if approved run make-pr and back-to-main."
