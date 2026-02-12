@@ -1,6 +1,6 @@
 ---
 name: linear-start-work
-description: Start work from a Linear issue link or key by loading full issue context (including comments, attachments, and sub-issues), researching the issue against the codebase to determine the work required, creating and pushing a git branch from the issue slug/branch, and moving the issue to In Progress. Use when a user says “start work”, “spin up a branch”, or provides a Linear issue to begin coding.
+description: Start work from a Linear issue link or key by loading full issue context (including comments, attachments, parent issue, and child sub-issues), researching the issue against the codebase to determine the work required, creating and pushing a git branch from the issue slug/branch, and moving the issue to In Progress. Use when a user says “start work”, “spin up a branch”, or provides a Linear issue to begin coding.
 ---
 
 # Linear Start Work
@@ -12,10 +12,13 @@ Follow this sequence every time.
 1. Resolve the issue
 - Accept a Linear issue URL or key.
 - Use the Linear skill/MCP to fetch the issue with full details, including relations.
-- Also list all comments and any sub-issues (children). If attachments exist, load them when possible.
+- If the issue has a parent, read the parent issue context before branch creation (title, goal, acceptance criteria, constraints, open questions, and links) so the implementation is aligned with parent intent.
+- Also list all comments and explicitly enumerate sub-issues (children) in a list.
+- If attachments exist, load them when possible.
 
 2. Summarize context
 - Build a brief, actionable summary: title, goal, acceptance criteria, relevant links, and risks.
+- If a parent issue is present, include a short parent context section (scope, dependencies, and constraints) in the same summary.
 - If attachments or sub-issues are large, summarize each in 1-3 bullets.
 
 3. Research the implementation
