@@ -1,0 +1,4 @@
+interface:
+  display_name: "Start Task"
+  short_description: "Launch a Linear issue as a background task"
+  default_prompt: "Use this skill to take a Linear issue URL, provision an isolated working copy from the master repo, launch Claude to execute kit-and-kaboodle, and track the task to completion."
