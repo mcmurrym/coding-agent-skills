@@ -1,5 +1,5 @@
 ---
-name: start-task
+name: launch-task
 description: "Launch a Linear issue as a background task: provision an isolated working copy from the master repo, launch Claude CLI to execute kit-and-kaboodle, and track the task to completion. Supports multiple concurrent tasks."
 ---
 
