@@ -20,7 +20,9 @@ if [ -L "$CLAUDE_SKILLS" ]; then
   if [ "$target" = "$SHARED_DIR" ]; then
     echo "Claude Code: symlink OK -> $SHARED_DIR"
   else
-    echo "Claude Code: symlink points to $target (expected $SHARED_DIR)"
+    echo "Claude Code: updating symlink from $target -> $SHARED_DIR"
+    rm "$CLAUDE_SKILLS"
+    ln -s "$SHARED_DIR" "$CLAUDE_SKILLS"
   fi
 elif [ -d "$CLAUDE_SKILLS" ]; then
   echo "Claude Code: WARNING — ~/.claude/skills/ is a real directory, not a symlink."
@@ -37,6 +39,18 @@ else
   added=0
   removed=0
 
+  # Remove stale symlinks (broken or pointing outside SHARED_DIR)
+  for link in "$CODEX_SKILLS"/*; do
+    [ -L "$link" ] || continue
+    target=$(readlink "$link")
+    if [ ! -e "$link" ] || [[ "$target" != "$SHARED_DIR"/* ]]; then
+      name=$(basename "$link")
+      rm "$link"
+      echo "Codex CLI: removed stale link $name"
+      ((removed++))
+    fi
+  done
+
   # Add missing symlinks
   for skill_dir in "$SHARED_DIR"/*/; do
     [ -d "$skill_dir" ] || continue
@@ -47,17 +61,6 @@ else
       ln -s "$skill_dir" "$link"
       echo "Codex CLI: linked $name"
       ((added++))
-    fi
-  done
-
-  # Remove stale symlinks (pointing to non-existent targets in shared dir)
-  for link in "$CODEX_SKILLS"/*; do
-    [ -L "$link" ] || continue
-    if [ ! -e "$link" ]; then
-      name=$(basename "$link")
-      rm "$link"
-      echo "Codex CLI: removed stale link $name"
-      ((removed++))
     fi
   done
 
