@@ -28,6 +28,12 @@ Extract the issue key (e.g. `CP-123`) and the team prefix (e.g. `CP`).
 
 If the input is missing or invalid, ask for it before continuing.
 
+**Immediately after parsing**, send a message to the user:
+
+> "Got it — picking up **{issue-key}**. Setting up the working copy now…"
+
+This acknowledgment must be sent **before** any git or file operations begin. Do not wait.
+
 ### Step 2: Resolve the repo mapping
 
 Check `workspace/Developer/tasks/_state/repo-map.json` for a mapping from this Linear team prefix to a local master repo.
@@ -110,7 +116,7 @@ Capture the returned `sessionId` and update the state file:
 - Set `status` to `running`
 - Set `agentSessionId` to the session ID
 
-Report to the user: "Task {issue-key} is running. Working copy at tasks/{slug}/"
+Report to the user: "**{issue-key}** is now running. Agent is executing kit-and-kaboodle in `tasks/{slug}/`."
 
 ### Step 7: Track until completion
 
