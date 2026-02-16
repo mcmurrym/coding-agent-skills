@@ -1,20 +1,46 @@
 ---
 name: launch-task
-description: "Launch a Linear issue as a background task: provision an isolated working copy from the master repo, launch Claude CLI to execute kit-and-kaboodle, and track the task to completion. Supports multiple concurrent tasks."
+description: "Orchestrate background task execution: provision an isolated working copy from a master repo, spawn a Claude Code agent to work on a Linear issue via kit-and-kaboodle, and track the task through completion. Use when the user wants to launch a task, run an issue in the background, or start automated delivery for a Linear ticket."
+compatibility: Requires git, pnpm, gh CLI, and Claude Code CLI. Designed for macOS (Darwin).
+metadata:
+  author: openclaw
+  version: "1.0"
+  openclaw: '{"os": ["darwin"], "requires": {"bins": ["git", "pnpm", "gh", "claude"]}}'
 ---
 
-# Start Task
+# Launch Task
 
 ## Overview
 
-Orchestrates end-to-end task execution for Linear issues. Provisions an isolated working copy of the source repo, launches Claude CLI to run `kit-and-kaboodle`, and tracks the task through completion. Multiple tasks can run concurrently.
+Provisions an isolated working copy of a source repo and spawns a Claude Code agent in the background to execute `kit-and-kaboodle` for a Linear issue. Multiple tasks can run concurrently.
+
+This skill only handles launching. Use `/task-status` to check on running tasks and `/task-cleanup` to remove completed working copies.
 
 ## Prerequisites
 
-- Master repos live in `workspace/Developer/` (e.g. `coverpanda-app/`, `Postee/`)
+- `$WORKSPACE_ROOT` must be set (see Environment Configuration below)
+- Master repos live in `$WORKSPACE_ROOT/` (e.g. `coverpanda-app/`, `Postee/`)
 - Master repos are always on `main`, never modified directly — only pulled
-- Claude CLI is installed and available as `claude`
+- Claude Code CLI is installed and available as `claude`
 - `pnpm` is installed globally
+
+## Environment Configuration
+
+Set `WORKSPACE_ROOT` in `~/.openclaw/openclaw.json`:
+
+```json
+{
+  "skills": {
+    "launch-task": {
+      "env": {
+        "WORKSPACE_ROOT": "/Users/agent1/.openclaw/workspace/Developer"
+      }
+    }
+  }
+}
+```
+
+This env var is also used by `task-status` and `task-cleanup`. Set it for all three skills.
 
 ## Workflow
 
@@ -36,11 +62,11 @@ This acknowledgment must be sent **before** any git or file operations begin. Do
 
 ### Step 2: Resolve the repo mapping
 
-Check `workspace/Developer/tasks/_state/repo-map.json` for a mapping from this Linear team prefix to a local master repo.
+Check `$WORKSPACE_ROOT/tasks/_state/repo-map.json` for a mapping from this Linear team prefix to a local master repo.
 
 If `repo-map.json` does not exist or the team is not mapped:
 
-1. List directories in `workspace/Developer/` (exclude `tasks/` and `coding-agent-skills/`).
+1. List directories in `$WORKSPACE_ROOT/` (exclude `tasks/`).
 2. Ask the user which repo this Linear team maps to.
 3. Save the mapping to `repo-map.json`:
 
@@ -61,18 +87,18 @@ If `repo-map.json` does not exist or the team is not mapped:
 Run the following in the master repo directory:
 
 ```bash
-git fetch --prune
-git pull --ff-only
+git -C "$WORKSPACE_ROOT/<repo>" fetch --prune
+git -C "$WORKSPACE_ROOT/<repo>" pull --ff-only
 ```
 
 If pull fails (diverged state, dirty working tree), **stop and report the problem**. Never modify the master repo beyond pulling.
 
 ### Step 4: Create the working copy
 
-Use the bundled script to create a hardlink copy:
+Use the bundled script to create a copy:
 
 ```bash
-"$SKILL_DIR/scripts/copy-repo.sh" "workspace/Developer/<repo>" "workspace/Developer/tasks/<issue-key-slug>/"
+"$SKILL_DIR/scripts/copy-repo.sh" "$WORKSPACE_ROOT/<repo>" "$WORKSPACE_ROOT/tasks/<issue-key-slug>/"
 ```
 
 The slug is derived from the issue key and title: lowercase, hyphenated, punctuation removed. Example: `cp-123-fix-login-bug`.
@@ -80,20 +106,20 @@ The slug is derived from the issue key and title: lowercase, hyphenated, punctua
 The script will:
 - Validate the source is on `main` with no uncommitted changes
 - Pull latest
-- Hardlink-copy with `cp -al` (falls back to `cp -a`)
+- Copy the repo (APFS clone on macOS, hardlink on Linux)
 - Run `pnpm install` in the copy
 - Verify `.git` exists in the copy
 
 ### Step 5: Write initial task state
 
-Create `workspace/Developer/tasks/_state/{issue-key}.json`:
+Create `$WORKSPACE_ROOT/tasks/_state/{issue-key}.json`:
 
 ```json
 {
   "issueKey": "CP-123",
   "issueUrl": "https://linear.app/team/issue/CP-123",
   "repo": "coverpanda-app",
-  "workDir": "workspace/Developer/tasks/cp-123-fix-login-bug/",
+  "workDir": "$WORKSPACE_ROOT/tasks/cp-123-fix-login-bug/",
   "status": "starting",
   "startedAt": "2026-02-12T00:00:00Z",
   "agentType": "claude",
@@ -104,12 +130,12 @@ Create `workspace/Developer/tasks/_state/{issue-key}.json`:
 }
 ```
 
-### Step 6: Launch Claude CLI
+### Step 6: Launch Claude Code
 
-Run Claude in the background via the exec tool:
+Spawn Claude Code in the background using the coding-agent pattern. PTY mode is required — Claude Code is an interactive terminal application.
 
 ```bash
-exec background:true pty:true workdir:<absolute-path-to-working-copy> command:"claude --dangerously-skip-permissions -p '/kit-and-kaboodle <linear-url>'"
+bash pty:true background:true workdir:<absolute-path-to-working-copy> command:"claude --dangerously-skip-permissions -p '/kit-and-kaboodle <linear-url>'"
 ```
 
 Capture the returned `sessionId` and update the state file:
@@ -117,63 +143,6 @@ Capture the returned `sessionId` and update the state file:
 - Set `agentSessionId` to the session ID
 
 Report to the user: "**{issue-key}** is now running. Agent is executing kit-and-kaboodle in `tasks/{slug}/`."
-
-### Step 7: Track until completion
-
-When polled (via `/taskStatus` or heartbeat), check if the Claude session has completed:
-
-```bash
-process action:poll sessionId:<sessionId>
-```
-
-On completion:
-- If a PR was created: set `status` to `completed`, capture `prUrl`, set `completedAt`.
-- If kit-and-kaboodle failed (15-attempt limit): set `status` to `failed`, capture `error` details.
-
-**On failure:**
-1. Post failure details as a **comment on the Linear issue** via the Linear MCP:
-   - Last test output / error
-   - Number of attempts made
-   - What was tried
-2. Send a **message to the user** via the current messaging channel (WhatsApp/Slack) with a summary of the failure.
-
-### Step 8: Auto-cleanup on heartbeat
-
-During heartbeat cycles, check all tasks with status `completed`:
-
-1. Read the `prUrl` from the state file.
-2. Check if the PR is merged: `gh pr view <prUrl> --json state`
-3. If merged:
-   - Remove the working copy directory.
-   - Update state `status` to `cleaned`.
-
----
-
-## Additional Commands
-
-### `/taskStatus` — Check on running tasks
-
-1. Read all `.json` files in `workspace/Developer/tasks/_state/` (skip `repo-map.json`).
-2. For tasks with status `running`, poll the background session:
-   ```bash
-   process action:poll sessionId:<sessionId>
-   ```
-3. Present a status table:
-   ```
-   | Issue   | Repo           | Status    | Started           | PR               |
-   |---------|----------------|-----------|-------------------|------------------|
-   | CP-123  | coverpanda-app | running   | 2026-02-12 10:30  | —                |
-   | CP-456  | coverpanda-app | completed | 2026-02-12 09:00  | github.com/...   |
-   ```
-4. If a running task has actually completed, update its state file accordingly.
-
-### `/taskCleanup {issue-key}` — Manual cleanup
-
-1. Read the state file for the given issue key.
-2. If a PR exists, verify it is merged via `gh pr view`.
-3. Remove the working copy directory.
-4. Update state `status` to `cleaned`.
-5. If the PR is not merged, warn the user and ask for confirmation before cleaning up.
 
 ## Safety Notes
 

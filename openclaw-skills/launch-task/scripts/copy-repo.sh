@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# copy-repo.sh — Hardlink-copy a master repo to a task working directory.
+# copy-repo.sh — Copy a master repo to a task working directory.
 #
 # Usage: copy-repo.sh <source-repo-path> <destination-path>
 #
 # Steps:
 #   1. Validates the source repo exists and is on the main branch.
 #   2. Pulls the latest changes (fetch --prune + pull --ff-only).
-#   3. Hardlink-copies with cp -al (falls back to cp -a).
+#   3. Copies the repo (APFS clone on macOS via cp -c, hardlink on Linux via cp -al).
 #   4. Runs pnpm install in the destination.
 #   5. Verifies the copy has a valid .git directory.
 
@@ -47,13 +47,18 @@ if [ -d "$DEST" ]; then
   exit 1
 fi
 
-# --- Hardlink copy ---
+# --- Copy ---
+# macOS APFS: cp -c uses clonefile(2) — instant copy-on-write, no data copied until modified.
+# Linux: cp -al uses hardlinks for fast copies.
+# Falls back to cp -a if neither is available.
 echo "Copying $(basename "$SOURCE") to $DEST..."
-if cp -al "$SOURCE" "$DEST" 2>/dev/null; then
-  echo "Hardlink copy succeeded."
+if [ "$(uname)" = "Darwin" ] && cp -cRp "$SOURCE" "$DEST" 2>/dev/null; then
+  echo "APFS clone succeeded (instant copy-on-write)."
+elif [ "$(uname)" = "Linux" ] && cp -al "$SOURCE" "$DEST" 2>/dev/null; then
+  echo "Hardlink copy succeeded (Linux)."
 else
-  echo "Hardlink copy not supported, falling back to full copy..."
   cp -a "$SOURCE" "$DEST"
+  echo "Full copy completed (fallback)."
 fi
 
 # --- Verify copy ---
