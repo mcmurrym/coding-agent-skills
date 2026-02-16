@@ -46,11 +46,32 @@ This env var is also used by `task-status` and `task-cleanup`. Set it for all th
 
 **Follow these steps in order. Do not skip steps.**
 
+### Step 0: Validate environment
+
+Verify `$WORKSPACE_ROOT` is set. If not, **stop** and tell the user to configure it (see Environment Configuration above).
+
+Ensure the tasks and state directories exist:
+```bash
+mkdir -p "$WORKSPACE_ROOT/tasks/_state"
+```
+
 ### Step 1: Parse the Linear URL
 
 Accept a Linear issue URL or issue key from the user.
 
-Extract the issue key (e.g. `CP-123`) and the team prefix (e.g. `CP`).
+Linear URLs follow this structure:
+```
+https://linear.app/{org}/issue/{TEAM}-{number}/{optional-slug}
+```
+
+For example, `https://linear.app/coverpanda/issue/ENG-88/fix-login-bug`:
+- **org** = `coverpanda` (the Linear organization)
+- **team** = `ENG` (the team within that org)
+- **issue key** = `ENG-88`
+
+Extract the **issue key** (e.g. `ENG-88`) and the **team prefix** (e.g. `ENG`).
+
+If the input is a bare issue key (e.g. `ENG-88`) without a URL, accept it but note that the full URL will be needed for kit-and-kaboodle later.
 
 If the input is missing or invalid, ask for it before continuing.
 
@@ -62,11 +83,13 @@ This acknowledgment must be sent **before** any git or file operations begin. Do
 
 ### Step 2: Resolve the repo mapping
 
-Check `$WORKSPACE_ROOT/tasks/_state/repo-map.json` for a mapping from this Linear team prefix to a local master repo.
+Check `$WORKSPACE_ROOT/tasks/_state/repo-map.json` for a mapping from this Linear **team prefix** to a local master repo directory.
+
+The mapping connects a Linear team (e.g. `ENG`) to a cloned git repo that lives in `$WORKSPACE_ROOT/` (e.g. `coverpanda-app/`). Multiple teams can map to the same repo.
 
 If `repo-map.json` does not exist or the team is not mapped:
 
-1. List directories in `$WORKSPACE_ROOT/` (exclude `tasks/`).
+1. List directories in `$WORKSPACE_ROOT/` that are git repos (contain a `.git` directory). Exclude `tasks/`.
 2. Ask the user which repo this Linear team maps to.
 3. Save the mapping to `repo-map.json`:
 
@@ -74,7 +97,7 @@ If `repo-map.json` does not exist or the team is not mapped:
 {
   "mappings": [
     {
-      "linearTeam": "CP",
+      "linearTeam": "ENG",
       "repoPath": "coverpanda-app",
       "addedAt": "2026-02-12T00:00:00Z"
     }
