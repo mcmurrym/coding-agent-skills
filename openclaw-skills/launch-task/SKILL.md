@@ -1,6 +1,6 @@
 ---
 name: launch-task
-description: "Orchestrate background task execution: provision an isolated working copy from a master repo, spawn a Claude Code agent to work on a Linear issue via kit-and-kaboodle, and track the task through completion. Use when the user wants to launch a task, run an issue in the background, or start automated delivery for a Linear ticket."
+description: "Orchestrate background task execution: provision an isolated working copy from a master repo, launch Claude Code to work on a Linear issue via kit-and-kaboodle, and track the task through completion. Use when the user wants to launch a task, run an issue in the background, or start automated delivery for a Linear ticket."
 compatibility: Requires git, pnpm, gh CLI, and Claude Code CLI. Designed for macOS (Darwin).
 metadata:
   author: openclaw
@@ -12,7 +12,7 @@ metadata:
 
 ## Overview
 
-Provisions an isolated working copy of a source repo and spawns a Claude Code agent in the background to execute `kit-and-kaboodle` for a Linear issue. Multiple tasks can run concurrently.
+Provisions an isolated working copy of a source repo and launches Claude Code as a background process to execute `kit-and-kaboodle` for a Linear issue. Multiple tasks can run concurrently.
 
 This skill only handles launching. Use `/task-status` to check on running tasks and `/task-cleanup` to remove completed working copies.
 
@@ -132,15 +132,23 @@ Create `$WORKSPACE_ROOT/tasks/_state/{issue-key}.json`:
 
 ### Step 6: Launch Claude Code
 
-Spawn Claude Code in the background using the coding-agent pattern. PTY mode is required — Claude Code is an interactive terminal application.
+Run Claude Code as a background process using the **bash tool** — do NOT use `sessions_spawn`. PTY mode is required because Claude Code is an interactive terminal application.
 
-```bash
+```
 bash pty:true background:true workdir:<absolute-path-to-working-copy> command:"claude --dangerously-skip-permissions -p '/kit-and-kaboodle <linear-url>'"
 ```
+
+This uses the bash tool with `pty:true` and `background:true` parameters, following the coding-agent pattern. The bash tool will return a `sessionId`.
 
 Capture the returned `sessionId` and update the state file:
 - Set `status` to `running`
 - Set `agentSessionId` to the session ID
+
+To check on the process later, use:
+```
+process action:poll sessionId:<sessionId>
+process action:log sessionId:<sessionId>
+```
 
 Report to the user: "**{issue-key}** is now running. Agent is executing kit-and-kaboodle in `tasks/{slug}/`."
 
