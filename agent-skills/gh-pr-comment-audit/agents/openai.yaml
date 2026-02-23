@@ -1,0 +1,4 @@
+interface:
+  display_name: "GH PR Comment Audit"
+  short_description: "Review PR comments and resolve false positives"
+  default_prompt: "Use $gh-pr-comment-audit to fetch PR review comments from a PR URL, evaluate each finding, post suggestions for real issues, and resolve non-real review threads via gh api."
