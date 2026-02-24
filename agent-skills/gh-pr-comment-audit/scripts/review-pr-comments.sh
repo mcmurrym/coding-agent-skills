@@ -152,7 +152,7 @@ fetch_threads() {
     payload="$(gh api graphql -f query="$(fetch_query_fallback)" -f owner="$PR_OWNER" -f repo="$PR_REPO" -f number="$PR_NUMBER")"
   fi
 
-  if [[ "$JSON_ONLY" -eq 1 || ! command -v jq >/dev/null 2>&1 ]]; then
+  if [[ "$JSON_ONLY" -eq 1 ]] || ! command -v jq >/dev/null 2>&1; then
     echo "$payload"
     return
   fi
