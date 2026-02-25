@@ -145,8 +145,8 @@ GRAPHQL
 fetch_threads() {
   local payload
 
-  if ! payload="$(gh api graphql -f query="$(fetch_query)" -f owner="$PR_OWNER" -f repo="$PR_REPO" -f number="$PR_NUMBER")"; then
-    payload="$(gh api graphql -f query="$(fetch_query_fallback)" -f owner="$PR_OWNER" -f repo="$PR_REPO" -f number="$PR_NUMBER")"
+  if ! payload="$(gh api graphql -f query="$(fetch_query)" -f owner="$PR_OWNER" -f repo="$PR_REPO" -F number="$PR_NUMBER")"; then
+    payload="$(gh api graphql -f query="$(fetch_query_fallback)" -f owner="$PR_OWNER" -f repo="$PR_REPO" -F number="$PR_NUMBER")"
   fi
 
   if [[ "$JSON_ONLY" -eq 1 ]] || ! command -v jq >/dev/null 2>&1; then

@@ -104,11 +104,11 @@ If `CODEX_HOME` is not set, use the absolute workspace path:
 Fetch unresolved threads:
 
 ```bash
-gh api graphql -f query='query($owner:String!,$repo:String!,$number:Int!){repository(owner:$owner,name:$repo){pullRequest(number:$number){reviewThreads(first:100, states:[UNRESOLVED]){nodes{id isResolved isOutdated path line comments(first:20){nodes{id author{login} body originalLine originalPosition diffHunk originalCommit{oid} path line url}}}}}}}' -F owner=<owner> -F repo=<repo> -F number=<number>
+gh api graphql -f query='query($owner:String!,$repo:String!,$number:Int!){repository(owner:$owner,name:$repo){pullRequest(number:$number){reviewThreads(first:100, states:[UNRESOLVED]){nodes{id isResolved isOutdated path line comments(first:20){nodes{id author{login} body originalLine originalPosition diffHunk originalCommit{oid} path line url}}}}}}}' -f owner=<owner> -f repo=<repo> -F number=<number>
 ```
 
 Resolve a thread:
 
 ```bash
-gh api graphql -f query='mutation($threadId:ID!){resolveReviewThread(input:{threadId:$threadId,clientMutationId:"gh-pr-comment-audit"}){thread{isResolved id}}}' -F threadId=<thread_id>
+gh api graphql -f query='mutation($threadId:ID!){resolveReviewThread(input:{threadId:$threadId,clientMutationId:"gh-pr-comment-audit"}){thread{isResolved id}}}' -f threadId=<thread_id>
 ```
