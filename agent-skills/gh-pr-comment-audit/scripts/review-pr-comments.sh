@@ -165,7 +165,7 @@ fetch_threads() {
     , "outdated: \(.isOutdated)"
     , "can_resolve: \(.viewerCanResolve)"
     , "COMMENTS:"
-    , (.comments.nodes | map("  - id=\(.id) author=\(.author.login // "") commit=\(.originalCommit.oid // "")")[])
+    , (.comments.nodes[] | "  - id=\(.id) author=\(.author.login // "") commit=\(.originalCommit.oid // "") url=\(.url // "")", "    body: \(.body // "" | gsub("\n"; "\n    "))")
     , "---"
   '
 }
