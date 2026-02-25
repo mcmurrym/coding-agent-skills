@@ -1,31 +1,78 @@
 ---
 name: gh-pr-comment-audit
-description: Download review comments from a GitHub pull request URL via gh api, evaluate whether each finding is real, post suggested fixes for real issues, and resolve non-real findings by marking their review threads as resolved.
+description: Download review comments from a GitHub pull request URL via gh api, evaluate whether each finding is real, auto-fix trivial issues, resolve non-real threads on GitHub, and present complex issues in chat for the user to decide on.
 ---
 
 # GitHub PR Comment Audit
 
-Use this skill when you need to triage a pull request’s review comments as actionable findings.
+Use this skill to triage a pull request's unresolved review comments.
 
 ## Workflow
 
-1. Fetch unresolved review threads for a PR.
-2. Evaluate each thread:
-   - Real issue: propose and publish a concrete suggestion.
-   - Non-real issue: resolve the thread directly using the GraphQL `resolveReviewThread` mutation.
-3. Report:
-   - list of threads resolved,
-   - list of suggestions posted,
-   - any threads left open for follow-up.
+### Step 1 — Fetch unresolved threads
+
+```bash
+./review-pr-comments.sh fetch <pr-url>
+```
+
+### Step 2 — Read and evaluate each thread
+
+For every unresolved thread, read the comment body and the surrounding source code. Classify each thread into one of three buckets:
+
+1. **Not a real issue** — false positive, stale/outdated, style nit that doesn't apply, etc.
+2. **Real issue, trivial fix** — small one-liner or obvious change you can make right now.
+3. **Real issue, non-trivial** — needs thought, has trade-offs, or touches multiple places.
+
+### Step 3 — Act on each bucket
+
+**Not a real issue →** Resolve the thread on GitHub immediately:
+
+```bash
+./review-pr-comments.sh resolve <pr-url> --thread-id <id>
+```
+
+You may batch multiple thread IDs in one call. No comment is needed — just resolve.
+
+**Real issue, trivial fix →** Fix the code directly (edit the file), then resolve the thread on GitHub:
+
+```bash
+./review-pr-comments.sh resolve <pr-url> --thread-id <id>
+```
+
+**Real issue, non-trivial →** Do NOT fix or resolve. Instead, present the analysis in chat using this format:
+
+> **`<file>:<line>`** — <one-line summary of the review comment>
+>
+> **Problem:** <clear explanation of what's wrong>
+>
+> **Suggested fix:**
+> ```<lang>
+> <concrete code showing a possible fix>
+> ```
+>
+> **Trade-offs / notes:** <anything the user should know before deciding>
+
+### Step 4 — Summary
+
+After processing all threads, output a summary:
+
+| Category | Count | Action taken |
+|----------|-------|-------------|
+| Not real / stale | N | Resolved on GitHub |
+| Trivial fixes | N | Fixed in code + resolved on GitHub |
+| Non-trivial (awaiting decision) | N | Presented above |
+
+### Step 5 — Follow-up
+
+If the user asks you to fix any of the non-trivial issues:
+1. Make the code changes.
+2. Resolve the corresponding threads on GitHub.
 
 ## Setup
 
-- Requires `gh` authentication with repository access.
-- Run from a machine with network access and GraphQL permissions for resolving review threads.
+- Requires `gh` authentication with repository access and permission to resolve review threads.
 
-## Default helper script
-
-Use the bundled script for deterministic API calls:
+## Helper script
 
 ```bash
 "$CODEX_HOME/agent-skills/gh-pr-comment-audit/scripts/review-pr-comments.sh"
@@ -37,92 +84,31 @@ If `CODEX_HOME` is not set, use the absolute workspace path:
 "/Users/mattmcmurry/coding-agent-skills/agent-skills/gh-pr-comment-audit/scripts/review-pr-comments.sh"
 ```
 
-## Script usage
+### Commands
 
-### 1) Download unresolved threads
-
-```bash
-./review-pr-comments.sh fetch https://github.com/<owner>/<repo>/pull/<number>
-```
-
-Flags:
-- `--json-only`: output raw GraphQL JSON (useful for downstream parsing).
-
-This prints each unresolved review thread with:
-- `thread_id` (use this for resolution),
-- file path and line,
-- every comment in the thread with author/body/commit/position.
-
-### 2) Add suggestions for real issues
-
-Create a suggestion body in Markdown (with optional `suggestion` fence) and post it as a new PR comment against the exact location.
+**fetch** — Download unresolved review threads (read-only).
 
 ```bash
-./review-pr-comments.sh suggest <pr-url> \
-  --thread-id <thread_id> \
-  --path "src/example.ts" \
-  --line 120 \
-  --commit-id "<commit_sha>" \
-  --body-file /tmp/suggestion.md
+./review-pr-comments.sh fetch <pr-url> [--json-only]
 ```
 
-`--body-file` is required and should include the exact proposed change text.
-- Use suggestion format when you have a concrete replacement.
-
-```suggestion
-// suggestion.md
-<your exact replacement code>
-```
-
-### 3) Resolve non-real issues
-
-Pass one or more thread IDs to close them as resolved.
+**resolve** — Resolve one or more threads on GitHub.
 
 ```bash
 ./review-pr-comments.sh resolve <pr-url> \
-  --thread-id <thread_id_1> \
-  --thread-id <thread_id_2> \
-  --reason "Not an issue (intended behavior)"
+  --thread-id <id1> [--thread-id <id2> ...]
 ```
 
-This calls the GitHub GraphQL API mutation to actually resolve the review threads (not just add a comment).
+## Direct gh api equivalents
 
-## Recommended process
-
-- Use `fetch` first and read the returned threads.
-- For each item:
-  - if real, call `suggest`.
-  - if non-real, call `resolve`.
-- Keep a short final notes block in the review thread or ticket indicating what was triaged.
-
-## Direct gh api equivalents (no script)
-
-- Fetch unresolved review threads:
+Fetch unresolved threads:
 
 ```bash
 gh api graphql -f query='query($owner:String!,$repo:String!,$number:Int!){repository(owner:$owner,name:$repo){pullRequest(number:$number){reviewThreads(first:100, states:[UNRESOLVED]){nodes{id isResolved isOutdated path line comments(first:20){nodes{id author{login} body originalLine originalPosition diffHunk originalCommit{oid} path line url}}}}}}}' -F owner=<owner> -F repo=<repo> -F number=<number>
 ```
 
-- Resolve a thread:
+Resolve a thread:
 
 ```bash
-gh api graphql -f query='mutation($threadId:ID!){resolveReviewThread(input:{threadId:$threadId,clientMutationId:"codex-pr-audit"}){thread{isResolved id}}}' -F threadId=<thread_id>
+gh api graphql -f query='mutation($threadId:ID!){resolveReviewThread(input:{threadId:$threadId,clientMutationId:"gh-pr-comment-audit"}){thread{isResolved id}}}' -F threadId=<thread_id>
 ```
-
-- Create a suggestion reply:
-
-```bash
-gh api repos/<owner>/<repo>/pulls/<number>/comments -f body="$(cat /tmp/suggestion.md)" -f commit_id=<commit_sha> -f path=<path> -f line=<line> -f side="RIGHT"
-```
-
-
-## Example body templates
-
-Use these files as `--body-file` content when posting suggestions:
-
-- `examples/suggest-null-guard.md`
-- `examples/suggest-query-filter.md`
-
-Use this file for a standard non-issue closeout comment when not implementing a fix:
-
-- `examples/non-issue-resolve.md`
