@@ -12,7 +12,7 @@ Use this skill to triage a pull request's unresolved review comments.
 ### Step 1 — Fetch unresolved threads
 
 ```bash
-./review-pr-comments.sh fetch <pr-url>
+"$SCRIPT" fetch <pr-url>
 ```
 
 ### Step 2 — Read and evaluate each thread
@@ -28,7 +28,7 @@ For every unresolved thread, read the comment body and the surrounding source co
 **Not a real issue →** Resolve the thread on GitHub immediately:
 
 ```bash
-./review-pr-comments.sh resolve <pr-url> --thread-id <id>
+"$SCRIPT" resolve <pr-url> --thread-id <id>
 ```
 
 You may batch multiple thread IDs in one call. No comment is needed — just resolve.
@@ -36,7 +36,7 @@ You may batch multiple thread IDs in one call. No comment is needed — just res
 **Real issue, trivial fix →** Fix the code directly (edit the file), then resolve the thread on GitHub:
 
 ```bash
-./review-pr-comments.sh resolve <pr-url> --thread-id <id>
+"$SCRIPT" resolve <pr-url> --thread-id <id>
 ```
 
 **Real issue, non-trivial →** Do NOT fix or resolve. Instead, present the analysis in chat using this format:
@@ -72,16 +72,20 @@ If the user asks you to fix any of the non-trivial issues:
 
 - Requires `gh` authentication with repository access and permission to resolve review threads.
 
-## Helper script
+## Script
+
+**Always use the bundled script for all GitHub API calls. Never construct `gh api graphql` commands inline — they break due to quote mangling.**
+
+Resolve the script path:
 
 ```bash
-"$CODEX_HOME/agent-skills/gh-pr-comment-audit/scripts/review-pr-comments.sh"
+SCRIPT="$CODEX_HOME/agent-skills/gh-pr-comment-audit/scripts/review-pr-comments.sh"
 ```
 
 If `CODEX_HOME` is not set, use the absolute workspace path:
 
 ```bash
-"/Users/mattmcmurry/coding-agent-skills/agent-skills/gh-pr-comment-audit/scripts/review-pr-comments.sh"
+SCRIPT="/Users/mattmcmurry/coding-agent-skills/agent-skills/gh-pr-comment-audit/scripts/review-pr-comments.sh"
 ```
 
 ### Commands
@@ -89,26 +93,12 @@ If `CODEX_HOME` is not set, use the absolute workspace path:
 **fetch** — Download unresolved review threads (read-only).
 
 ```bash
-./review-pr-comments.sh fetch <pr-url> [--json-only]
+"$SCRIPT" fetch <pr-url> [--json-only]
 ```
 
 **resolve** — Resolve one or more threads on GitHub.
 
 ```bash
-./review-pr-comments.sh resolve <pr-url> \
+"$SCRIPT" resolve <pr-url> \
   --thread-id <id1> [--thread-id <id2> ...]
-```
-
-## Direct gh api equivalents
-
-Fetch unresolved threads:
-
-```bash
-gh api graphql -f query='query($owner:String!,$repo:String!,$number:Int!){repository(owner:$owner,name:$repo){pullRequest(number:$number){reviewThreads(first:100, states:[UNRESOLVED]){nodes{id isResolved isOutdated path line comments(first:20){nodes{id author{login} body originalLine originalPosition diffHunk originalCommit{oid} path line url}}}}}}}' -f owner=<owner> -f repo=<repo> -F number=<number>
-```
-
-Resolve a thread:
-
-```bash
-gh api graphql -f query='mutation($threadId:ID!){resolveReviewThread(input:{threadId:$threadId,clientMutationId:"gh-pr-comment-audit"}){thread{isResolved id}}}' -f threadId=<thread_id>
 ```
