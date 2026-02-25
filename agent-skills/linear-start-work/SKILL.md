@@ -1,6 +1,6 @@
 ---
 name: linear-start-work
-description: Start work from a Linear issue link or key by loading full issue context (including comments, attachments, parent issue, and child sub-issues), researching the issue against the codebase to determine the work required, creating and pushing a git branch from the issue slug/branch, and moving the issue to In Progress. Use when a user says “start work”, “spin up a branch”, or provides a Linear issue to begin coding.
+description: Start work from a Linear issue link or key by loading full issue context (including comments, attachments, parent issue, and child sub-issues), researching the issue against the codebase to determine the work required, optionally creating a git branch, and moving the issue to In Progress. Use when a user says “start work”, “spin up a branch”, or provides a Linear issue to begin coding.
 ---
 
 # Linear Start Work
@@ -30,28 +30,29 @@ Follow this sequence every time.
   - test/validation steps.
 - If requirements are ambiguous, call out assumptions and open questions before implementation.
 
-4. Create and push the branch
+4. Create and push the branch (unless user opts out)
+- **Skip this step** if the user says “no branch”, “stay on current branch”, “don’t switch branches”, or similar. In that case, proceed directly to step 5.
 - Prefer the issue’s provided `branchName` or `branch` field when present.
 - Otherwise derive a slug from the issue title: lowercase, hyphenated, remove punctuation.
 - Create and push:
 
 ```bash
-branch="<issue-branch-or-slug>"
-git checkout -b "$branch" || git checkout "$branch"
-git push -u origin "$branch"
+branch=”<issue-branch-or-slug>”
+git checkout -b “$branch” || git checkout “$branch”
+git push -u origin “$branch”
 ```
 
 - If the remote branch already exists, fetch and check it out:
 
 ```bash
-git fetch origin "$branch":"$branch"
-git checkout "$branch"
+git fetch origin “$branch”:”$branch”
+git checkout “$branch”
 ```
 
 5. Move issue to In Progress
 - Use Linear statuses from the issue’s team.
 - Prefer status type `started` or the name “In Progress”.
-- Update the issue to that status after the branch is created.
+- Update the issue to that status after the branch is created (or after research if branch was skipped).
 
 ## Notes
 
