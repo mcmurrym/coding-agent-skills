@@ -17,7 +17,22 @@ Use this skill to triage a pull request's unresolved review comments.
 
 ### Step 2 — Read and evaluate each thread
 
-For every unresolved thread, read the comment body and the surrounding source code. Classify each thread into one of three buckets:
+For every unresolved thread, review in this order:
+
+1. Read the full review thread: comment body, `isOutdated`, `path`, `line`, `startLine`, and `diffHunk`.
+2. Open the referenced file at the relevant line range (or nearest equivalent commit/version if outdated).
+3. Confirm whether the review point still applies in the current diff.
+
+Use this per-thread evidence template (required before bucket placement):
+
+- Finding: <what the reviewer is claiming>
+- Scope check: <file/path + line + old/new commit context if outdated>
+- Evidence: <specific code excerpt or API behavior confirming or disproving>
+- Outcome: <real / not real + rationale>
+
+If a finding cannot be verified from the available context, classify it as **non-trivial** and ask for confirmation, rather than resolving it as not real.
+
+Only after verification, classify each thread into one of three buckets:
 
 1. **Not a real issue** — false positive, stale/outdated, style nit that doesn't apply, etc.
 2. **Real issue, trivial fix** — small one-liner or obvious change you can make right now.
@@ -25,7 +40,20 @@ For every unresolved thread, read the comment body and the surrounding source co
 
 ### Step 3 — Act on each bucket
 
-**Not a real issue →** Resolve the thread on GitHub immediately:
+**Research gate for all classifications**
+
+- A thread is **Not a real issue** only if you can point to one concrete reason from evidence that the comment is invalid (for example, outdated thread, duplicate/already-fixed behavior, or the suggested change is outside changed behavior).
+- If evidence is incomplete or contradictory, default to **Real issue, non-trivial**.
+
+**Not a real issue →** Resolve the thread on GitHub after documenting the evidence briefly in chat:
+
+```bash
+"$SCRIPT" resolve <pr-url> --thread-id <id>
+```
+
+You may batch multiple thread IDs in one call.
+
+**Real issue, trivial fix →** Fix the code directly (edit the file), verify the local change matches the comment intent, then resolve the thread on GitHub:
 
 ```bash
 "$SCRIPT" resolve <pr-url> --thread-id <id>
@@ -33,17 +61,13 @@ For every unresolved thread, read the comment body and the surrounding source co
 
 You may batch multiple thread IDs in one call. No comment is needed — just resolve.
 
-**Real issue, trivial fix →** Fix the code directly (edit the file), then resolve the thread on GitHub:
-
-```bash
-"$SCRIPT" resolve <pr-url> --thread-id <id>
-```
-
 **Real issue, non-trivial →** Do NOT fix or resolve. Instead, present the analysis in chat using this format:
 
 > **`<file>:<line>`** — <one-line summary of the review comment>
 >
 > **Problem:** <clear explanation of what's wrong>
+>
+> **Evidence:** <line-level citation, snippet, or observed behavior>
 >
 > **Suggested fix:**
 > ```<lang>
@@ -51,6 +75,12 @@ You may batch multiple thread IDs in one call. No comment is needed — just res
 > ```
 >
 > **Trade-offs / notes:** <anything the user should know before deciding>
+
+Required minimum for every non-trivial item:
+
+1. Confirm whether the thread is outdated/stale.
+2. Include exact `path`, `line`, and `commit` references where available.
+3. Include one concrete validation step that proves the impact.
 
 ### Step 4 — Summary
 
