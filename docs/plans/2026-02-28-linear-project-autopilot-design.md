@@ -31,11 +31,11 @@ For each issue in the work queue:
 - Invoke `linear-start-work` with the issue (fetch context, create branch, move to In Progress).
 - Create a git worktree for isolation.
 
-### Step 2: Implement + Test
+### Step 2: Implement + Test + Validate
+- On the first issue, detect the project platform (JS/TS, Kotlin/Java, Swift, Rust, Python, Go, etc.) and establish any missing quality tooling: test framework, compilation/type checking, linting, formatting. Use the idiomatic tools for the platform — don't impose JS tooling on a Kotlin project.
 - Implement the changes based on the research from linear-start-work.
 - Write meaningful unit tests that cover real behavior and edge cases, not just line coverage.
-- If the project doesn't have a test framework established, set one up as part of the first issue.
-- Run tests and validation (type checking, linting) for touched areas.
+- Run all applicable validation: tests, compile/type check, lint, format. Fix all failures before proceeding.
 
 ### Step 3: Commit & Push
 - Invoke `git-add-commit-push` to stage, commit, and push.
