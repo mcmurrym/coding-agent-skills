@@ -1,0 +1,4 @@
+interface:
+  display_name: "Linear Project Autopilot"
+  short_description: "Autonomously work through all issues in a Linear project"
+  default_prompt: "Use this skill to take a Linear project URL, work through all issues in milestone/priority order, implementing each with tests, creating PRs, self-reviewing, and auto-merging. Stops only when human action is needed."
