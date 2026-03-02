@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # sync-skills.sh — Sync shared skills to Claude Code, Codex CLI, and Gemini CLI
 #
-# Claude Code:  ~/.claude/skills/ (directory symlink to this repo)
+# Claude Code:  ~/.claude/skills/ (per-skill symlinks)
 # Codex CLI:    ~/.codex/skills/  (per-skill symlinks, preserves .system/)
 # Gemini CLI:   ~/.gemini/skills/ (per-skill symlinks)
 #
@@ -17,21 +17,46 @@ GEMINI_SKILLS="$HOME/.gemini/skills"
 echo "Shared skills directory: $SHARED_DIR"
 
 # --- Claude Code ---
+# If the skills dir is a whole-directory symlink from a previous version, replace it
 if [ -L "$CLAUDE_SKILLS" ]; then
-  target=$(readlink "$CLAUDE_SKILLS")
-  if [ "$target" = "$SHARED_DIR" ]; then
-    echo "Claude Code: symlink OK -> $SHARED_DIR"
-  else
-    echo "Claude Code: updating symlink from $target -> $SHARED_DIR"
-    rm "$CLAUDE_SKILLS"
-    ln -s "$SHARED_DIR" "$CLAUDE_SKILLS"
+  echo "Claude Code: replacing whole-directory symlink with per-skill symlinks"
+  rm "$CLAUDE_SKILLS"
+fi
+
+mkdir -p "$CLAUDE_SKILLS"
+
+added=0
+removed=0
+
+# Remove stale symlinks (broken or pointing outside SHARED_DIR)
+for link in "$CLAUDE_SKILLS"/*; do
+  [ -L "$link" ] || continue
+  target=$(readlink "$link")
+  if [ ! -e "$link" ] || [[ "$target" != "$SHARED_DIR"/* ]]; then
+    name=$(basename "$link")
+    rm "$link"
+    echo "Claude Code: removed stale link $name"
+    ((removed++))
   fi
-elif [ -d "$CLAUDE_SKILLS" ]; then
-  echo "Claude Code: WARNING — ~/.claude/skills/ is a real directory, not a symlink."
-  echo "  To fix: mv ~/.claude/skills ~/.claude/skills.bak && ln -s $SHARED_DIR ~/.claude/skills"
+done
+
+# Add missing symlinks
+for skill_dir in "$SHARED_DIR"/*/; do
+  [ -d "$skill_dir" ] || continue
+  name=$(basename "$skill_dir")
+  [ "$name" = ".git" ] && continue
+  link="$CLAUDE_SKILLS/$name"
+  if [ ! -e "$link" ]; then
+    ln -s "$skill_dir" "$link"
+    echo "Claude Code: linked $name"
+    ((added++))
+  fi
+done
+
+if [ "$added" -eq 0 ] && [ "$removed" -eq 0 ]; then
+  echo "Claude Code: all symlinks up to date"
 else
-  ln -s "$SHARED_DIR" "$CLAUDE_SKILLS"
-  echo "Claude Code: created symlink -> $SHARED_DIR"
+  echo "Claude Code: added $added, removed $removed"
 fi
 
 # --- Codex CLI ---
