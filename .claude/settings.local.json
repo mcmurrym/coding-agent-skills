@@ -4,7 +4,9 @@
       "mcp__context7__resolve-library-id",
       "mcp__context7__query-docs",
       "Bash(git add:*)",
-      "Bash(/Users/mattmcmurry/.codex/skills/git-add-commit-push/scripts/git-add-commit-push.sh:*)"
+      "Bash(/Users/mattmcmurry/.codex/skills/git-add-commit-push/scripts/git-add-commit-push.sh:*)",
+      "Bash(git:*)",
+      "Bash(gh repo:*)"
     ]
   }
 }
