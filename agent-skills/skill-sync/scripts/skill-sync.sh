@@ -304,6 +304,65 @@ cmd_harvest() {
   echo "Review and commit the changes in your private repo when ready."
 }
 
+cmd_remove() {
+  local skill="$1"
+  require_project_repo
+
+  local source_commit
+  source_commit="$(get_manifest_commit "$skill")"
+  [ -n "$source_commit" ] || die "Skill '$skill' is not in the manifest. Nothing to remove."
+
+  # Remove skill files
+  if [ -d "$SHARED_DIR/$skill" ]; then
+    rm -rf "$SHARED_DIR/$skill"
+    echo "Removed $SHARED_DIR/$skill/"
+  fi
+
+  # Remove symlinks
+  for agent_dir in "${AGENT_DIRS[@]}"; do
+    if [ -L "$agent_dir/$skill" ]; then
+      rm "$agent_dir/$skill"
+      echo "Removed symlink $agent_dir/$skill"
+    fi
+    # Clean up empty agent skills directory
+    if [ -d "$agent_dir" ] && [ -z "$(ls -A "$agent_dir" 2>/dev/null)" ]; then
+      rmdir "$agent_dir"
+      # Also clean parent dir if empty (e.g. .agents/ after removing .agents/skills/)
+      local parent_dir
+      parent_dir="$(dirname "$agent_dir")"
+      if [ -d "$parent_dir" ] && [ -z "$(ls -A "$parent_dir" 2>/dev/null)" ]; then
+        rmdir "$parent_dir"
+      fi
+    fi
+  done
+
+  # Update manifest
+  local manifest
+  manifest="$(read_manifest)"
+  manifest="$(echo "$manifest" | jq --arg s "$skill" 'del(.skills[$s])')"
+
+  # Check if any skills remain
+  local remaining
+  remaining="$(echo "$manifest" | jq '.skills | length')"
+  if [ "$remaining" -eq 0 ]; then
+    # Remove manifest and .shared directory
+    rm -f "$MANIFEST"
+    echo "Removed $MANIFEST"
+    if [ -d "$SHARED_DIR" ] && [ -z "$(ls -A "$SHARED_DIR" 2>/dev/null)" ]; then
+      rmdir "$SHARED_DIR"
+    fi
+    if [ -d ".shared" ] && [ -z "$(ls -A ".shared" 2>/dev/null)" ]; then
+      rmdir ".shared"
+    fi
+  else
+    write_manifest "$manifest"
+    echo "Updated $MANIFEST"
+  fi
+
+  echo ""
+  echo "Removed skill '$skill' from project"
+}
+
 # --- Dispatch ---
 case "$COMMAND" in
   install)
@@ -322,7 +381,8 @@ case "$COMMAND" in
     cmd_harvest "$SKILL"
     ;;
   remove)
-    die "Command '$COMMAND' not yet implemented"
+    [ -n "$SKILL" ] || die "Usage: skill-sync.sh remove <skill>"
+    cmd_remove "$SKILL"
     ;;
   *)
     die "Unknown command: $COMMAND. Expected: install, update, harvest, remove, status"
