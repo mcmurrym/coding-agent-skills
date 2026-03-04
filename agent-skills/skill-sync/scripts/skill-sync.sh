@@ -132,13 +132,81 @@ cmd_install() {
   echo "  Manifest: $MANIFEST"
 }
 
+cmd_status() {
+  require_private_repo
+  require_project_repo
+
+  local manifest
+  manifest="$(read_manifest)"
+
+  local skills
+  skills="$(echo "$manifest" | jq -r '.skills | keys[]')"
+
+  if [ -z "$skills" ]; then
+    echo "No skills installed in this project."
+    return
+  fi
+
+  printf "%-20s %-12s %-12s %-15s %s\n" "Skill" "Installed" "Upstream" "Local Changes" "Status"
+  printf "%-20s %-12s %-12s %-15s %s\n" "----" "---------" "--------" "-------------" "------"
+
+  for skill in $skills; do
+    local source_commit upstream_commit upstream_diff local_diff status_str
+
+    source_commit="$(echo "$manifest" | jq -r ".skills[\"$skill\"].sourceCommit // empty")"
+    upstream_commit="$(get_private_commit)"
+
+    # Check upstream changes since installed commit
+    upstream_diff="$(git -C "$PRIVATE_REPO" diff --stat "$source_commit..HEAD" -- "agent-skills/$skill/" 2>/dev/null || true)"
+
+    # Check local changes by comparing installed files against original source
+    local has_local_changes="no"
+    if [ -d "$SHARED_DIR/$skill" ]; then
+      local tmp_dir
+      tmp_dir="$(mktemp -d)"
+      # Extract the original version from the source commit
+      git -C "$PRIVATE_REPO" archive "$source_commit" -- "agent-skills/$skill" 2>/dev/null | tar -x -C "$tmp_dir" 2>/dev/null || true
+      if [ -d "$tmp_dir/agent-skills/$skill" ]; then
+        local_diff="$(diff -rq "$tmp_dir/agent-skills/$skill" "$SHARED_DIR/$skill" 2>/dev/null || true)"
+        if [ -n "$local_diff" ]; then
+          has_local_changes="yes"
+        fi
+      fi
+      rm -rf "$tmp_dir"
+    fi
+
+    # Determine status
+    local has_upstream="no"
+    if [ -n "$upstream_diff" ]; then
+      has_upstream="yes"
+    fi
+
+    if [ ! -d "$SHARED_DIR/$skill" ]; then
+      status_str="files missing"
+    elif [ "$has_upstream" = "yes" ] && [ "$has_local_changes" = "yes" ]; then
+      status_str="both changed"
+    elif [ "$has_upstream" = "yes" ]; then
+      status_str="update available"
+    elif [ "$has_local_changes" = "yes" ]; then
+      status_str="locally modified"
+    else
+      status_str="up to date"
+    fi
+
+    printf "%-20s %-12s %-12s %-15s %s\n" "$skill" "$source_commit" "$upstream_commit" "$has_local_changes" "$status_str"
+  done
+}
+
 # --- Dispatch ---
 case "$COMMAND" in
   install)
     [ -n "$SKILL" ] || die "Usage: skill-sync.sh install <skill>"
     cmd_install "$SKILL"
     ;;
-  update|harvest|remove|status)
+  status)
+    cmd_status
+    ;;
+  update|harvest|remove)
     die "Command '$COMMAND' not yet implemented"
     ;;
   *)
