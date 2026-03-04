@@ -1,7 +1,7 @@
 ---
 name: make-pr
 description: Create GitHub pull requests from the current branch, including commit/push flow when there are uncommitted changes and a concise branch summary for the PR description. Use when the user asks to make a PR, open a PR, or draft a PR for the current branch.
-args: "[draft]"
+args: "[draft] [review with <tool>]"
 ---
 
 # Make PR
@@ -13,6 +13,9 @@ Create a PR for the current git branch, ensuring changes are committed and pushe
 ## Arguments
 
 - **draft** (optional): Pass `draft` to create a draft PR instead of a regular PR. Example: `/make-pr draft`
+- **review with \<tool\>** (optional, draft only): After creating a draft PR, search available MCP tools for one matching the given tool name and invoke it to review the PR. Example: `/make-pr draft review with coderabbit`
+
+Note: `review with` is only meaningful for draft PRs. Non-draft PRs trigger connected review tools automatically via GitHub webhooks.
 
 ## Workflow
 
@@ -31,8 +34,11 @@ Use `git log` and `git diff` against the base branch to create a concise summary
 5. Create the PR.
 Use `gh pr create` with a title and the generated summary as the body. If the `draft` argument was passed, add the `--draft` flag. Otherwise create a regular PR.
 
-6. Report back.
-Return the PR URL and the title/body used. If the PR could not be created because `gh` is missing, authentication failed, or no remote exists, explain the blocker and ask for the missing info.
+6. Trigger review tool (draft PRs only, when `review with <tool>` is specified).
+Search available MCP tools for one whose name contains the requested tool name (case-insensitive). If found, invoke it with the PR URL or number as context. If no matching MCP tool is found, report that the tool is not available and suggest the user check their MCP server configuration.
+
+7. Report back.
+Return the PR URL and the title/body used. If a review tool was triggered, include that in the report. If the PR could not be created because `gh` is missing, authentication failed, or no remote exists, explain the blocker and ask for the missing info.
 
 ## Command patterns
 
