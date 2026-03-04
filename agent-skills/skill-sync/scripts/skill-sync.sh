@@ -197,6 +197,72 @@ cmd_status() {
   done
 }
 
+cmd_update() {
+  local skill="$1"
+  require_private_repo
+  require_project_repo
+
+  if [ "$skill" = "--all" ]; then
+    local manifest
+    manifest="$(read_manifest)"
+    local skills
+    skills="$(echo "$manifest" | jq -r '.skills | keys[]' 2>/dev/null)"
+    if [ -z "$skills" ]; then
+      echo "No skills installed to update."
+      return
+    fi
+    for s in $skills; do
+      cmd_update_single "$s"
+    done
+    return
+  fi
+
+  cmd_update_single "$skill"
+}
+
+cmd_update_single() {
+  local skill="$1"
+  skill_exists_in_private "$skill"
+
+  local source_commit
+  source_commit="$(get_manifest_commit "$skill")"
+  [ -n "$source_commit" ] || die "Skill '$skill' is not installed. Use 'install' first."
+
+  local current_commit
+  current_commit="$(get_private_commit)"
+
+  # Check upstream changes
+  local upstream_diff
+  upstream_diff="$(git -C "$PRIVATE_REPO" diff "$source_commit..$current_commit" -- "agent-skills/$skill/" 2>/dev/null)"
+
+  if [ -z "$upstream_diff" ]; then
+    echo "$skill: already up to date (at $source_commit)"
+    return
+  fi
+
+  echo "=== Changes for $skill ($source_commit -> $current_commit) ==="
+  git -C "$PRIVATE_REPO" diff --stat "$source_commit..$current_commit" -- "agent-skills/$skill/"
+  echo ""
+  git -C "$PRIVATE_REPO" diff "$source_commit..$current_commit" -- "agent-skills/$skill/"
+  echo ""
+
+  # Copy updated files
+  rm -rf "$SHARED_DIR/$skill"
+  mkdir -p "$SHARED_DIR/$skill"
+  cp -R "$PRIVATE_SKILLS/$skill/." "$SHARED_DIR/$skill/"
+
+  # Update manifest
+  local timestamp
+  timestamp="$(now_iso)"
+  local manifest
+  manifest="$(read_manifest)"
+  manifest="$(echo "$manifest" | jq --arg s "$skill" --arg c "$current_commit" --arg t "$timestamp" \
+    '.skills[$s].sourceCommit = $c | .skills[$s].updatedAt = $t')"
+  write_manifest "$manifest"
+
+  echo "Updated $skill to commit $current_commit"
+}
+
 # --- Dispatch ---
 case "$COMMAND" in
   install)
@@ -206,7 +272,11 @@ case "$COMMAND" in
   status)
     cmd_status
     ;;
-  update|harvest|remove)
+  update)
+    [ -n "$SKILL" ] || die "Usage: skill-sync.sh update <skill> | --all"
+    cmd_update "$SKILL"
+    ;;
+  harvest|remove)
     die "Command '$COMMAND' not yet implemented"
     ;;
   *)
