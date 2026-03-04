@@ -263,6 +263,47 @@ cmd_update_single() {
   echo "Updated $skill to commit $current_commit"
 }
 
+cmd_harvest() {
+  local skill="$1"
+  require_private_repo
+  require_project_repo
+
+  local source_commit
+  source_commit="$(get_manifest_commit "$skill")"
+  [ -n "$source_commit" ] || die "Skill '$skill' is not installed. Nothing to harvest."
+
+  [ -d "$SHARED_DIR/$skill" ] || die "Skill directory $SHARED_DIR/$skill not found"
+
+  # Reconstruct what was originally installed
+  local tmp_dir
+  tmp_dir="$(mktemp -d)"
+  git -C "$PRIVATE_REPO" archive "$source_commit" -- "agent-skills/$skill" | tar -x -C "$tmp_dir" 2>/dev/null \
+    || die "Could not retrieve original version at commit $source_commit"
+
+  # Diff original vs project's current version
+  local harvest_diff
+  harvest_diff="$(diff -ru "$tmp_dir/agent-skills/$skill" "$SHARED_DIR/$skill" 2>/dev/null || true)"
+
+  rm -rf "$tmp_dir"
+
+  if [ -z "$harvest_diff" ]; then
+    echo "$skill: no local modifications to harvest"
+    return
+  fi
+
+  echo "=== Local changes to $skill (since install at $source_commit) ==="
+  echo "$harvest_diff"
+  echo ""
+
+  # Copy project version back to private repo
+  rm -rf "$PRIVATE_SKILLS/$skill"
+  mkdir -p "$PRIVATE_SKILLS/$skill"
+  cp -R "$SHARED_DIR/$skill/." "$PRIVATE_SKILLS/$skill/"
+
+  echo "Harvested changes from project into private repo at $PRIVATE_SKILLS/$skill/"
+  echo "Review and commit the changes in your private repo when ready."
+}
+
 # --- Dispatch ---
 case "$COMMAND" in
   install)
@@ -276,7 +317,11 @@ case "$COMMAND" in
     [ -n "$SKILL" ] || die "Usage: skill-sync.sh update <skill> | --all"
     cmd_update "$SKILL"
     ;;
-  harvest|remove)
+  harvest)
+    [ -n "$SKILL" ] || die "Usage: skill-sync.sh harvest <skill>"
+    cmd_harvest "$SKILL"
+    ;;
+  remove)
     die "Command '$COMMAND' not yet implemented"
     ;;
   *)
