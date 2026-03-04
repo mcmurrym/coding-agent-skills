@@ -6,7 +6,19 @@
       "Bash(git add:*)",
       "Bash(/Users/mattmcmurry/.codex/skills/git-add-commit-push/scripts/git-add-commit-push.sh:*)",
       "Bash(git:*)",
-      "Bash(gh repo:*)"
+      "Bash(gh repo:*)",
+      "Bash(chmod +x:*)",
+      "Bash(/Users/mattmcmurry/coding-agent-skills/agent-skills/skill-sync/scripts/skill-sync.sh install:*)",
+      "Bash(/Users/mattmcmurry/coding-agent-skills/agent-skills/skill-sync/scripts/skill-sync.sh status:*)",
+      "Bash(pgrep:*)",
+      "Bash($SCRIPT install:*)",
+      "Bash($SCRIPT update:*)",
+      "Bash($SCRIPT harvest:*)",
+      "Bash($SCRIPT status:*)",
+      "Bash($SCRIPT remove:*)",
+      "Bash(/Users/mattmcmurry/coding-agent-skills/agent-skills/skill-sync/scripts/skill-sync.sh harvest:*)",
+      "Bash(/Users/mattmcmurry/coding-agent-skills/agent-skills/skill-sync/scripts/skill-sync.sh remove:*)",
+      "Bash(/Users/mattmcmurry/coding-agent-skills/agent-skills/skill-sync/scripts/skill-sync.sh:*)"
     ]
   }
 }

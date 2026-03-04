@@ -28,16 +28,24 @@ mkdir -p "$CLAUDE_SKILLS"
 added=0
 removed=0
 
-# Remove stale symlinks (broken or pointing outside SHARED_DIR)
+# Remove stale symlinks (broken, or pointing into SHARED_DIR for a skill that no longer exists)
 for link in "$CLAUDE_SKILLS"/*; do
   [ -L "$link" ] || continue
   target=$(readlink "$link")
-  if [ ! -e "$link" ] || [[ "$target" != "$SHARED_DIR"/* ]]; then
+  if [ ! -e "$link" ]; then
+    # Broken symlink — remove regardless of where it points
+    name=$(basename "$link")
+    rm "$link"
+    echo "Claude Code: removed broken link $name"
+    ((removed++))
+  elif [[ "$target" == "$SHARED_DIR"/* ]] && [ ! -d "$SHARED_DIR/$(basename "$link")" ]; then
+    # Points into our SHARED_DIR but the skill directory was removed
     name=$(basename "$link")
     rm "$link"
     echo "Claude Code: removed stale link $name"
     ((removed++))
   fi
+  # Symlinks from other sources are left untouched
 done
 
 # Add missing symlinks
@@ -66,11 +74,16 @@ else
   added=0
   removed=0
 
-  # Remove stale symlinks (broken or pointing outside SHARED_DIR)
+  # Remove stale symlinks (broken, or pointing into SHARED_DIR for a skill that no longer exists)
   for link in "$CODEX_SKILLS"/*; do
     [ -L "$link" ] || continue
     target=$(readlink "$link")
-    if [ ! -e "$link" ] || [[ "$target" != "$SHARED_DIR"/* ]]; then
+    if [ ! -e "$link" ]; then
+      name=$(basename "$link")
+      rm "$link"
+      echo "Codex CLI: removed broken link $name"
+      ((removed++))
+    elif [[ "$target" == "$SHARED_DIR"/* ]] && [ ! -d "$SHARED_DIR/$(basename "$link")" ]; then
       name=$(basename "$link")
       rm "$link"
       echo "Codex CLI: removed stale link $name"
@@ -108,11 +121,16 @@ else
   added=0
   removed=0
 
-  # Remove stale symlinks (broken or pointing outside SHARED_DIR)
+  # Remove stale symlinks (broken, or pointing into SHARED_DIR for a skill that no longer exists)
   for link in "$GEMINI_SKILLS"/*; do
     [ -L "$link" ] || continue
     target=$(readlink "$link")
-    if [ ! -e "$link" ] || [[ "$target" != "$SHARED_DIR"/* ]]; then
+    if [ ! -e "$link" ]; then
+      name=$(basename "$link")
+      rm "$link"
+      echo "Gemini CLI: removed broken link $name"
+      ((removed++))
+    elif [[ "$target" == "$SHARED_DIR"/* ]] && [ ! -d "$SHARED_DIR/$(basename "$link")" ]; then
       name=$(basename "$link")
       rm "$link"
       echo "Gemini CLI: removed stale link $name"
