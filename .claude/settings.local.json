@@ -18,7 +18,8 @@
       "Bash($SCRIPT remove:*)",
       "Bash(/Users/mattmcmurry/coding-agent-skills/agent-skills/skill-sync/scripts/skill-sync.sh harvest:*)",
       "Bash(/Users/mattmcmurry/coding-agent-skills/agent-skills/skill-sync/scripts/skill-sync.sh remove:*)",
-      "Bash(/Users/mattmcmurry/coding-agent-skills/agent-skills/skill-sync/scripts/skill-sync.sh:*)"
+      "Bash(/Users/mattmcmurry/coding-agent-skills/agent-skills/skill-sync/scripts/skill-sync.sh:*)",
+      "Bash(/Users/mattmcmurry/coding-agent-skills/agent-skills/sync-skills.sh:*)"
     ]
   }
 }
