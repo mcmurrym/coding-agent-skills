@@ -53,6 +53,7 @@ for skill_dir in "$SHARED_DIR"/*/; do
   [ -d "$skill_dir" ] || continue
   name=$(basename "$skill_dir")
   [ "$name" = ".git" ] && continue
+  [ ! -f "$skill_dir/SKILL.md" ] && continue
   link="$CLAUDE_SKILLS/$name"
   if [ ! -e "$link" ]; then
     ln -s "$skill_dir" "$link"
@@ -96,6 +97,7 @@ else
     [ -d "$skill_dir" ] || continue
     name=$(basename "$skill_dir")
     [ "$name" = ".git" ] && continue
+    [ ! -f "$skill_dir/SKILL.md" ] && continue
     link="$CODEX_SKILLS/$name"
     if [ ! -e "$link" ]; then
       ln -s "$skill_dir" "$link"
@@ -143,6 +145,7 @@ else
     [ -d "$skill_dir" ] || continue
     name=$(basename "$skill_dir")
     [ "$name" = ".git" ] && continue
+    [ ! -f "$skill_dir/SKILL.md" ] && continue
     link="$GEMINI_SKILLS/$name"
     if [ ! -e "$link" ]; then
       ln -s "$skill_dir" "$link"
@@ -164,5 +167,6 @@ for skill_dir in "$SHARED_DIR"/*/; do
   [ -d "$skill_dir" ] || continue
   name=$(basename "$skill_dir")
   [ "$name" = ".git" ] && continue
+  [ ! -f "$skill_dir/SKILL.md" ] && continue
   echo "  - $name"
 done
