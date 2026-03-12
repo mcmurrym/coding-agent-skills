@@ -1,6 +1,6 @@
 ---
 name: linear-project-autopilot
-description: Take a Linear project URL, work through all issues autonomously in milestone/priority order. For each issue: implement with unit tests, commit, self-review, create PR, auto-merge, mark done. Stops only when human action is needed (API keys, external service config, etc).
+description: "Take a Linear project URL, work through all issues autonomously in milestone/priority order. For each issue: implement with unit tests, commit, self-review, create PR, auto-merge, mark done. Stops only when human action is needed (API keys, external service config, etc)."
 ---
 
 # Linear Project Autopilot
