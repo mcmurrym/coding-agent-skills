@@ -14,7 +14,16 @@
 set -euo pipefail
 
 # --- Config ---
-PRIVATE_REPO="$HOME/coding-agent-skills"
+# Discover the private repo from the script's own location.
+# Script lives at agent-skills/skill-sync/scripts/skill-sync.sh, so repo root is 3 levels up.
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+_candidate="$(cd "$SCRIPT_DIR/../../.." 2>/dev/null && pwd)"
+if [ -d "$_candidate/.git" ] && [ -d "$_candidate/agent-skills" ]; then
+  PRIVATE_REPO="$_candidate"
+else
+  PRIVATE_REPO="${CODING_AGENT_SKILLS_REPO:-$HOME/coding-agent-skills}"
+fi
+unset _candidate
 PRIVATE_SKILLS="$PRIVATE_REPO/agent-skills"
 SHARED_DIR=".shared/skills"
 MANIFEST=".shared/skills-manifest.json"
