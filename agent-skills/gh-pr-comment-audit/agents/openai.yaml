@@ -1,4 +1,4 @@
 interface:
   display_name: "GH PR Comment Audit"
-  short_description: "Triage PR review comments — auto-fix trivials, resolve non-issues, surface complex ones"
-  default_prompt: "Use $gh-pr-comment-audit to fetch PR review comments, evaluate each finding, auto-fix trivial issues, resolve non-real threads on GitHub, and present complex issues in chat for decision."
+  short_description: "Triage all PR review comments or one targeted/next unresolved comment"
+  default_prompt: "Use $gh-pr-comment-audit to fetch PR review comments, evaluate all unresolved findings or a targeted discussion/next unresolved comment, auto-fix trivial issues, resolve safe threads on GitHub, and present complex issues in chat for decision."
