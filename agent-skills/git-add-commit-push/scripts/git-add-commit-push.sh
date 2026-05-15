@@ -93,8 +93,34 @@ generate_message() {
   echo "chore: update $summary"
 }
 
-has_env_files() {
-  git diff --cached --name-only | grep -E '(^|/)\.env(\..*)?$' >/dev/null 2>&1
+is_allowed_env_template() {
+  local file base
+  file="$1"
+  base="$(basename "$file")"
+
+  case "$base" in
+    .env.example|.env.sample|.env.template)
+      return 0
+      ;;
+    *)
+      return 1
+      ;;
+  esac
+}
+
+has_blocked_env_files() {
+  local file base
+
+  while IFS= read -r file; do
+    base="$(basename "$file")"
+    if [[ "$base" == .env || "$base" == .env.* ]]; then
+      if ! is_allowed_env_template "$file"; then
+        return 0
+      fi
+    fi
+  done < <(git diff --cached --name-only)
+
+  return 1
 }
 
 if [[ "$dry_run" -eq 1 ]]; then
@@ -115,8 +141,8 @@ fi
 
 git add -A
 
-if has_env_files; then
-  echo "Refusing to commit .env files. Remove them from staging and try again." >&2
+if has_blocked_env_files; then
+  echo "Refusing to commit secret .env files. Template files like .env.example are allowed." >&2
   exit 1
 fi
 

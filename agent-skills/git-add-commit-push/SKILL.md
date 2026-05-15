@@ -56,5 +56,5 @@ git push origin HEAD
 
 ## Safety Notes
 
-- Never commit secrets or `.env` values.
+- Never commit secrets or real `.env` values. Template files such as `.env.example`, `.env.sample`, and `.env.template` may be committed.
 - This skill is for full staging only; do not use it for partial staging.
