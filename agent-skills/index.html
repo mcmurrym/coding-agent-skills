@@ -541,6 +541,47 @@
       font-size: 12px;
     }
 
+    .script-note {
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 250, 0.72);
+      padding: 16px;
+    }
+
+    .script-note h3 {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.1;
+    }
+
+    .script-note p {
+      margin-top: 10px;
+    }
+
+    .command-grid {
+      display: grid;
+      gap: 8px;
+      margin-top: 14px;
+    }
+
+    .command-grid div {
+      display: grid;
+      grid-template-columns: minmax(120px, 0.42fr) 1fr;
+      gap: 12px;
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+    }
+
+    .command-grid code {
+      color: var(--ink);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      overflow-wrap: anywhere;
+    }
+
     .empty {
       display: none;
       margin-top: 22px;
@@ -870,15 +911,17 @@
             <h3>Skill Sync</h3>
             <span class="tag">meta</span>
           </header>
-          <p>Installs, updates, harvests, removes, and checks sync status for skills copied from this private repo into project repos.</p>
+          <p>Manages the optional project-local copy workflow for teams that want selected private skills checked into a repo.</p>
           <ul>
-            <li>Copies skills into project-level shared skill folders.</li>
-            <li>Tracks bidirectional sync with a manifest.</li>
-            <li>Provides install, update, harvest, remove, and status commands.</li>
+            <li>Different from the global <code>sync-skills.sh</code> installer below.</li>
+            <li>Runs from another project repo, then copies <code>agent-skills/&lt;skill&gt;</code> into <code>.shared/skills/&lt;skill&gt;</code>.</li>
+            <li>Creates project-relative symlinks for <code>.claude/skills</code>, <code>.agents/skills</code>, and <code>.gemini/skills</code>.</li>
+            <li>Tracks the private-repo source commit in <code>.shared/skills-manifest.json</code> for update and harvest checks.</li>
+            <li>Provides install, update, update all, harvest, remove, and status commands.</li>
           </ul>
           <footer>
-            <span class="path">skill-sync/SKILL.md</span>
-            <a class="open-link" href="./skill-sync/SKILL.md">Open</a>
+            <span class="path">skill-sync/scripts/skill-sync.sh</span>
+            <a class="open-link" href="./skill-sync/scripts/skill-sync.sh">Open script</a>
           </footer>
         </article>
 
@@ -916,13 +959,36 @@
       <div class="resources">
         <h2>Local resources</h2>
         <ul class="resource-list">
-          <li><a href="./sync-skills.sh"><code>script</code><span>Top-level sync helper for this skills directory.</span></a></li>
+          <li><a href="./sync-skills.sh"><code>script</code><span>Global per-agent-tool installer for Claude Code, Codex CLI, and Gemini CLI.</span></a></li>
+          <li><a href="./skill-sync/scripts/skill-sync.sh"><code>script</code><span>Optional project-local skill copier, updater, harvester, remover, and status checker.</span></a></li>
           <li><a href="./gh-pr-comment-audit/scripts/review-pr-comments.sh"><code>script</code><span>GitHub review-thread fetch and audit helper.</span></a></li>
           <li><a href="./git-add-commit-push/scripts/git-add-commit-push.sh"><code>script</code><span>Zero-input add, commit, and push flow.</span></a></li>
           <li><a href="./workflow-retro/scripts/retro-log.sh"><code>script</code><span>Persistent workflow retro log helper.</span></a></li>
           <li><a href="./docs/plans/2026-03-05-workflow-retro-plan.md"><code>plan</code><span>Workflow Retro implementation plan.</span></a></li>
           <li><a href="./docs/plans/2026-03-05-workflow-retro-design.md"><code>plan</code><span>Workflow Retro design notes.</span></a></li>
         </ul>
+        <div class="script-note">
+          <h3>Two sync paths</h3>
+          <p>
+            The default path is global per agent tool: <code>agent-skills/sync-skills.sh</code> links every skill in this
+            directory into <code>~/.claude/skills</code>, <code>~/.codex/skills</code>, and <code>~/.gemini/skills</code>.
+            It also removes stale symlinks that point back to removed skills in this repo.
+          </p>
+          <p>
+            The nested <code>agent-skills/skill-sync/scripts/skill-sync.sh</code> script is the project-local option. Use
+            it from another git repo when that project should carry selected skills under <code>.shared/skills/</code>
+            with project-relative agent symlinks and a manifest recording the source commit.
+          </p>
+          <div class="command-grid" aria-label="skill-sync command reference">
+            <div><code>./sync-skills.sh</code><span>Install or refresh all private skills globally for Claude, Codex, and Gemini.</span></div>
+            <div><code>install &lt;skill&gt;</code><span>Project option: copy one private skill into the current project and create project-local agent symlinks.</span></div>
+            <div><code>status</code><span>Compare installed skills against the private repo and report local or upstream drift.</span></div>
+            <div><code>update &lt;skill&gt;</code><span>Replace the project copy with the newer private-repo version and update the manifest commit.</span></div>
+            <div><code>update --all</code><span>Run update checks for every skill listed in the project manifest.</span></div>
+            <div><code>harvest &lt;skill&gt;</code><span>Copy project-local skill edits back into the private repo for review and commit.</span></div>
+            <div><code>remove &lt;skill&gt;</code><span>Delete the shared copy, remove agent symlinks, and clean the manifest.</span></div>
+          </div>
+        </div>
       </div>
     </section>
   </main>
