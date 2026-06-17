@@ -1,0 +1,968 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Agent Skills Catalog</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f5f1;
+      --paper: #fffdfa;
+      --ink: #22201c;
+      --muted: #706b62;
+      --line: #ddd8cf;
+      --line-strong: #c7bfb2;
+      --accent: #2f7f72;
+      --accent-dark: #1f5f55;
+      --rust: #9f5d38;
+      --blue: #426d91;
+      --gold: #b68b2d;
+      --shadow: 0 18px 45px rgba(45, 38, 26, 0.09);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background:
+        linear-gradient(90deg, rgba(34, 32, 28, 0.035) 1px, transparent 1px) 0 0 / 44px 44px,
+        linear-gradient(rgba(34, 32, 28, 0.03) 1px, transparent 1px) 0 0 / 44px 44px,
+        var(--bg);
+      color: var(--ink);
+      font-family: Geist, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    a:hover {
+      color: var(--accent-dark);
+    }
+
+    .page {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 34px 0 56px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+      padding-bottom: 26px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .mark {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--ink);
+      border-radius: var(--radius);
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 3px;
+      padding: 6px;
+      background: var(--paper);
+      box-shadow: 4px 4px 0 rgba(34, 32, 28, 0.13);
+      flex: 0 0 auto;
+    }
+
+    .mark span {
+      border-radius: 2px;
+      background: var(--ink);
+    }
+
+    .eyebrow {
+      margin: 0;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .brand h1 {
+      margin: 1px 0 0;
+      font-size: clamp(24px, 3vw, 38px);
+      line-height: 1;
+      font-weight: 740;
+    }
+
+    .navlinks {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .navlinks a,
+    .filter {
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      background: rgba(255, 253, 250, 0.68);
+      padding: 8px 12px;
+      font-size: 13px;
+      color: var(--muted);
+      transition: transform 160ms ease, background 160ms ease, color 160ms ease;
+    }
+
+    .navlinks a:hover,
+    .filter:hover,
+    .filter.is-active {
+      background: var(--ink);
+      color: var(--paper);
+      transform: translateY(-1px);
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.06fr) minmax(340px, 0.94fr);
+      gap: clamp(28px, 5vw, 68px);
+      align-items: end;
+      padding: 56px 0 42px;
+    }
+
+    .hero-copy {
+      max-width: 760px;
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      margin-bottom: 20px;
+      color: var(--accent-dark);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0;
+    }
+
+    .kicker::before {
+      content: "";
+      width: 28px;
+      height: 1px;
+      background: currentColor;
+    }
+
+    .hero h2 {
+      margin: 0;
+      max-width: 780px;
+      font-size: clamp(42px, 8vw, 90px);
+      line-height: 0.91;
+      letter-spacing: 0;
+      font-weight: 760;
+    }
+
+    .hero p {
+      margin: 22px 0 0;
+      max-width: 66ch;
+      color: var(--muted);
+      font-size: clamp(16px, 1.6vw, 19px);
+      line-height: 1.65;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-top: 28px;
+      max-width: 640px;
+    }
+
+    .stat {
+      border-top: 1px solid var(--line-strong);
+      padding-top: 12px;
+    }
+
+    .stat strong {
+      display: block;
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: clamp(22px, 3vw, 33px);
+      line-height: 1;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .map {
+      position: relative;
+      min-height: 410px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 250, 0.76);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .map::before {
+      content: "";
+      position: absolute;
+      inset: 24px;
+      border: 1px dashed rgba(34, 32, 28, 0.24);
+      border-radius: var(--radius);
+    }
+
+    .node {
+      position: absolute;
+      width: 138px;
+      min-height: 74px;
+      border: 1px solid var(--ink);
+      border-radius: var(--radius);
+      background: var(--paper);
+      padding: 12px;
+      box-shadow: 6px 6px 0 rgba(34, 32, 28, 0.11);
+    }
+
+    .node b {
+      display: block;
+      font-size: 13px;
+      line-height: 1.2;
+    }
+
+    .node span {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.35;
+    }
+
+    .node::after {
+      content: "";
+      position: absolute;
+      width: 9px;
+      height: 9px;
+      right: 12px;
+      bottom: 12px;
+      border-radius: 99px;
+      background: var(--node-color, var(--accent));
+    }
+
+    .node.one { left: 30px; top: 34px; --node-color: var(--accent); }
+    .node.two { right: 34px; top: 88px; --node-color: var(--blue); }
+    .node.three { left: 92px; bottom: 68px; --node-color: var(--rust); }
+    .node.four { right: 82px; bottom: 34px; --node-color: var(--gold); }
+    .node.core {
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 160px;
+      min-height: 92px;
+      background: var(--ink);
+      color: var(--paper);
+      box-shadow: none;
+    }
+
+    .node.core span {
+      color: rgba(255, 253, 250, 0.7);
+    }
+
+    .line {
+      position: absolute;
+      height: 1px;
+      background: rgba(34, 32, 28, 0.24);
+      transform-origin: left center;
+    }
+
+    .line.a { width: 184px; left: 150px; top: 123px; transform: rotate(28deg); }
+    .line.b { width: 148px; right: 156px; top: 171px; transform: rotate(151deg); }
+    .line.c { width: 160px; left: 190px; bottom: 126px; transform: rotate(-23deg); }
+    .line.d { width: 132px; right: 198px; bottom: 102px; transform: rotate(198deg); }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin: 42px 0 18px;
+    }
+
+    .section-head h2 {
+      margin: 0;
+      font-size: clamp(28px, 4vw, 48px);
+      line-height: 1;
+      font-weight: 740;
+    }
+
+    .section-head p {
+      margin: 0;
+      max-width: 56ch;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
+    .toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: minmax(230px, 1fr) auto;
+      gap: 14px;
+      align-items: center;
+      padding: 12px 0;
+      background: rgba(246, 245, 241, 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(221, 216, 207, 0.78);
+    }
+
+    .search {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: var(--paper);
+      padding: 0 14px;
+      color: var(--ink);
+      font: inherit;
+      outline: none;
+    }
+
+    .search:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(47, 127, 114, 0.16);
+    }
+
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .filter {
+      cursor: pointer;
+      font: inherit;
+    }
+
+    .skill-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .skill {
+      grid-column: span 4;
+      min-height: 298px;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid var(--line-strong);
+      border-radius: var(--radius);
+      background: rgba(255, 253, 250, 0.82);
+      padding: 18px;
+      box-shadow: 0 10px 30px rgba(45, 38, 26, 0.055);
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .skill:hover {
+      transform: translateY(-3px);
+      border-color: rgba(34, 32, 28, 0.72);
+      box-shadow: var(--shadow);
+    }
+
+    .skill.wide {
+      grid-column: span 6;
+    }
+
+    .skill header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 14px;
+    }
+
+    .skill h3 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.08;
+    }
+
+    .tag {
+      flex: 0 0 auto;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      padding: 5px 8px;
+      color: var(--muted);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      background: rgba(246, 245, 241, 0.75);
+    }
+
+    .skill p {
+      margin: 16px 0 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    .skill ul {
+      margin: 16px 0 0;
+      padding: 0;
+      list-style: none;
+      display: grid;
+      gap: 9px;
+    }
+
+    .skill li {
+      display: grid;
+      grid-template-columns: 13px 1fr;
+      gap: 9px;
+      color: #4d4942;
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .skill li::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      margin-top: 5px;
+      border-radius: 99px;
+      background: var(--accent);
+    }
+
+    .skill footer {
+      margin-top: auto;
+      padding-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      border-top: 1px solid var(--line);
+    }
+
+    .path {
+      min-width: 0;
+      color: var(--muted);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .open-link {
+      flex: 0 0 auto;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      border: 1px solid var(--ink);
+      border-radius: var(--radius);
+      padding: 0 10px;
+      background: var(--ink);
+      color: var(--paper);
+      font-size: 13px;
+    }
+
+    .open-link:hover {
+      color: var(--paper);
+      background: var(--accent-dark);
+    }
+
+    .docs-band {
+      display: grid;
+      grid-template-columns: minmax(0, 0.85fr) minmax(280px, 1.15fr);
+      gap: 22px;
+      margin-top: 52px;
+      padding-top: 30px;
+      border-top: 1px solid var(--line-strong);
+    }
+
+    .callout {
+      border-left: 3px solid var(--accent);
+      padding-left: 18px;
+    }
+
+    .callout h2,
+    .resources h2 {
+      margin: 0 0 12px;
+      font-size: 26px;
+      line-height: 1.1;
+    }
+
+    .callout p,
+    .resources p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .resources {
+      display: grid;
+      gap: 12px;
+    }
+
+    .resource-list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .resource-list a {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 10px;
+      align-items: baseline;
+      min-height: 44px;
+      border-bottom: 1px solid var(--line);
+      padding: 10px 0;
+      color: #3e3931;
+    }
+
+    .resource-list code {
+      color: var(--accent-dark);
+      font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+      font-size: 12px;
+    }
+
+    .empty {
+      display: none;
+      margin-top: 22px;
+      border: 1px dashed var(--line-strong);
+      border-radius: var(--radius);
+      padding: 28px;
+      color: var(--muted);
+      background: rgba(255, 253, 250, 0.58);
+    }
+
+    .empty.is-visible {
+      display: block;
+    }
+
+    @media (max-width: 940px) {
+      .topbar,
+      .section-head,
+      .docs-band {
+        display: block;
+      }
+
+      .navlinks {
+        justify-content: flex-start;
+        margin-top: 16px;
+      }
+
+      .hero {
+        grid-template-columns: 1fr;
+        padding-top: 38px;
+      }
+
+      .map {
+        min-height: 360px;
+      }
+
+      .toolbar {
+        grid-template-columns: 1fr;
+      }
+
+      .filters {
+        justify-content: flex-start;
+      }
+
+      .skill,
+      .skill.wide {
+        grid-column: span 6;
+      }
+
+      .docs-band .resources {
+        margin-top: 24px;
+      }
+    }
+
+    @media (max-width: 680px) {
+      .page {
+        width: min(100% - 24px, 1180px);
+        padding-top: 22px;
+      }
+
+      .hero h2 {
+        font-size: clamp(38px, 14vw, 62px);
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .map {
+        min-height: auto;
+        padding: 16px;
+      }
+
+      .map::before,
+      .line {
+        display: none;
+      }
+
+      .node,
+      .node.core {
+        position: relative;
+        inset: auto;
+        left: auto;
+        right: auto;
+        top: auto;
+        bottom: auto;
+        transform: none;
+        width: 100%;
+        margin-bottom: 10px;
+      }
+
+      .skill,
+      .skill.wide {
+        grid-column: 1 / -1;
+        min-height: 0;
+      }
+
+      .skill footer {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <nav class="topbar" aria-label="Page navigation">
+      <a class="brand" href="#top" aria-label="Agent Skills Catalog home">
+        <span class="mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+        <span>
+          <p class="eyebrow">agent-skills/</p>
+          <h1>Agent Skills Catalog</h1>
+        </span>
+      </a>
+      <div class="navlinks">
+        <a href="#catalog">Catalog</a>
+        <a href="#resources">Resources</a>
+        <a href="./sync-skills.sh">Sync script</a>
+      </div>
+    </nav>
+
+    <section class="hero" id="top">
+      <div class="hero-copy">
+        <div class="kicker">Static local documentation</div>
+        <h2>Operational playbooks for coding agents.</h2>
+        <p>
+          A file-based index for the reusable workflows in this folder. Each skill keeps its own source of truth in
+          <code>SKILL.md</code>; this page gives the fast map: what exists, when to use it, and where to open the details.
+        </p>
+        <div class="stats" aria-label="Catalog statistics">
+          <div class="stat"><strong>10</strong><span>documented skills</span></div>
+          <div class="stat"><strong>4</strong><span>workflow scripts</span></div>
+          <div class="stat"><strong>0</strong><span>processes to run</span></div>
+        </div>
+      </div>
+
+      <div class="map" aria-label="Skill workflow map">
+        <span class="line a"></span>
+        <span class="line b"></span>
+        <span class="line c"></span>
+        <span class="line d"></span>
+        <a class="node one" href="#linear-start-work"><b>Start</b><span>Load Linear context and branch.</span></a>
+        <a class="node two" href="#git-add-commit-push"><b>Ship</b><span>Stage, commit, push, and PR.</span></a>
+        <a class="node core" href="#kit-and-kaboodle"><b>End to end</b><span>Issue to verified pull request.</span></a>
+        <a class="node three" href="#gh-pr-comment-audit"><b>Review</b><span>Audit unresolved PR comments.</span></a>
+        <a class="node four" href="#workflow-retro"><b>Improve</b><span>Turn review pain into workflow rules.</span></a>
+      </div>
+    </section>
+
+    <section id="catalog" aria-labelledby="catalog-title">
+      <div class="section-head">
+        <div>
+          <p class="eyebrow">Catalog</p>
+          <h2 id="catalog-title">Skills by workflow lane</h2>
+        </div>
+        <p>
+          Search by name or behavior. Filters are local JavaScript only and still work when this page is opened from disk.
+        </p>
+      </div>
+
+      <div class="toolbar" role="search">
+        <input class="search" id="skillSearch" type="search" placeholder="Search skills, tools, or outcomes" aria-label="Search skills">
+        <div class="filters" aria-label="Filter skills">
+          <button class="filter is-active" type="button" data-filter="all">All</button>
+          <button class="filter" type="button" data-filter="linear">Linear</button>
+          <button class="filter" type="button" data-filter="github">GitHub</button>
+          <button class="filter" type="button" data-filter="git">Git</button>
+          <button class="filter" type="button" data-filter="meta">Meta</button>
+        </div>
+      </div>
+
+      <div class="skill-grid" id="skillGrid">
+        <article class="skill wide" id="kit-and-kaboodle" data-tags="linear github git browser verification end-to-end">
+          <header>
+            <h3>Kit and Kaboodle</h3>
+            <span class="tag">delivery</span>
+          </header>
+          <p>End-to-end delivery flow from Linear issue kickoff through implementation, browser verification, review, PR, and cleanup.</p>
+          <ul>
+            <li>Starts from a Linear issue link or key.</li>
+            <li>Requires browser verification with recordings before PR creation.</li>
+            <li>Chains the start-work, commit-push, make-pr, and back-to-main lanes.</li>
+          </ul>
+          <footer>
+            <span class="path">kit-and-kaboodle/SKILL.md</span>
+            <a class="open-link" href="./kit-and-kaboodle/SKILL.md">Open</a>
+          </footer>
+        </article>
+
+        <article class="skill" id="linear-start-work" data-tags="linear issue branch research start work">
+          <header>
+            <h3>Linear Start Work</h3>
+            <span class="tag">linear</span>
+          </header>
+          <p>Starts coding work from a Linear issue by loading full context, researching the repo, creating a branch, and moving the issue forward.</p>
+          <ul>
+            <li>Reads parent, child, comment, document, and attachment context.</li>
+            <li>Adds a risk and invariant gate before implementation.</li>
+            <li>Creates and pushes an issue branch unless told not to.</li>
+          </ul>
+          <footer>
+            <span class="path">linear-start-work/SKILL.md</span>
+            <a class="open-link" href="./linear-start-work/SKILL.md">Open</a>
+          </footer>
+        </article>
+
+        <article class="skill" id="create-linear-issue" data-tags="linear planning issue create product requirements">
+          <header>
+            <h3>Create Linear Issue</h3>
+            <span class="tag">linear</span>
+          </header>
+          <p>Turns a rough product, bug, or planning prompt into real Linear issue records after focused repo and backlog research.</p>
+          <ul>
+            <li>Preserves concrete product constraints and source wording.</li>
+            <li>Searches for duplicates before creating new work.</li>
+            <li>Chooses single issue versus parent and sub-issues deliberately.</li>
+          </ul>
+          <footer>
+            <span class="path">create-linear-issue/SKILL.md</span>
+            <a class="open-link" href="./create-linear-issue/SKILL.md">Open</a>
+          </footer>
+        </article>
+
+        <article class="skill" id="linear" data-tags="linear mcp issue project team oauth">
+          <header>
+            <h3>Linear</h3>
+            <span class="tag">mcp</span>
+          </header>
+          <p>General Linear MCP workflow for reading, creating, and updating issues, projects, teams, and workspace context.</p>
+          <ul>
+            <li>Documents MCP connection endpoints and setup by agent surface.</li>
+            <li>Used as the foundation for issue and project workflows.</li>
+            <li>Includes local icon assets for richer agent interfaces.</li>
+          </ul>
+          <footer>
+            <span class="path">linear/SKILL.md</span>
+            <a class="open-link" href="./linear/SKILL.md">Open</a>
+          </footer>
+        </article>
+
+        <article class="skill wide" id="linear-project-autopilot" data-tags="linear project autopilot issues pr merge queue">
+          <header>
+            <h3>Linear Project Autopilot</h3>
+            <span class="tag">linear</span>
+          </header>
+          <p>Autonomously works through all issues in a Linear project in milestone and priority order until done or human action is needed.</p>
+          <ul>
+            <li>Builds a queue across milestones, priority, blockers, and creation date.</li>
+            <li>Stops for API keys, OAuth apps, DNS, purchases, or manual setup.</li>
+            <li>Implements, tests, reviews, opens PRs, merges, and marks issues done.</li>
+          </ul>
+          <footer>
+            <span class="path">linear-project-autopilot/SKILL.md</span>
+            <a class="open-link" href="./linear-project-autopilot/SKILL.md">Open</a>
+          </footer>
+        </article>
+
+        <article class="skill" id="git-add-commit-push" data-tags="git commit push stage script">
+          <header>
+            <h3>Git Add Commit Push</h3>
+            <span class="tag">git</span>
+          </header>
+          <p>Stages all changes, generates a commit message from the diff, commits, and pushes to the current branch with a repeatable script.</p>
+          <ul>
+            <li>Runs a zero-input commit and push flow.</li>
+            <li>Refuses to run when there are no changes.</li>
+            <li>Keeps secret safety checks explicit.</li>
+          </ul>
+          <footer>
+            <span class="path">git-add-commit-push/SKILL.md</span>
+            <a class="open-link" href="./git-add-commit-push/SKILL.md">Open</a>
+          </footer>
+        </article>
+
+        <article class="skill" id="make-pr" data-tags="github pr pull request git draft review">
+          <header>
+            <h3>Make PR</h3>
+            <span class="tag">github</span>
+          </header>
+          <p>Creates GitHub pull requests from the current branch, including commit and push handling when local changes exist.</p>
+          <ul>
+            <li>Discovers the repository default branch before diffing.</li>
+            <li>Creates concise branch summaries for the PR body.</li>
+            <li>Supports draft PRs and optional review tool triggering.</li>
+          </ul>
+          <footer>
+            <span class="path">make-pr/SKILL.md</span>
+            <a class="open-link" href="./make-pr/SKILL.md">Open</a>
+          </footer>
+        </article>
+
+        <article class="skill wide" id="gh-pr-comment-audit" data-tags="github pr review comments audit resolve script">
+          <header>
+            <h3>GH PR Comment Audit</h3>
+            <span class="tag">review</span>
+          </header>
+          <p>Fetches unresolved PR review comments, verifies whether each finding is real, fixes trivial issues, and resolves safe threads.</p>
+          <ul>
+            <li>Supports whole-PR, targeted discussion, thread ID, and next-unresolved modes.</li>
+            <li>Requires evidence before classifying comments as real or stale.</li>
+            <li>Uses GitHub thread resolution carefully when siblings remain actionable.</li>
+          </ul>
+          <footer>
+            <span class="path">gh-pr-comment-audit/SKILL.md</span>
+            <a class="open-link" href="./gh-pr-comment-audit/SKILL.md">Open</a>
+          </footer>
+        </article>
+
+        <article class="skill" id="back-to-main" data-tags="git main branch fetch pull sync">
+          <header>
+            <h3>Back To Main</h3>
+            <span class="tag">git</span>
+          </header>
+          <p>Returns a repository to the main branch and syncs it with origin using a pruning fetch and fast-forward pull.</p>
+          <ul>
+            <li>Fetches with prune before switching.</li>
+            <li>Creates local main from origin when needed.</li>
+            <li>Stops on local-change blockers instead of discarding work.</li>
+          </ul>
+          <footer>
+            <span class="path">back-to-main/SKILL.md</span>
+            <a class="open-link" href="./back-to-main/SKILL.md">Open</a>
+          </footer>
+        </article>
+
+        <article class="skill" id="skill-sync" data-tags="meta sync install update harvest remove scripts skills">
+          <header>
+            <h3>Skill Sync</h3>
+            <span class="tag">meta</span>
+          </header>
+          <p>Installs, updates, harvests, removes, and checks sync status for skills copied from this private repo into project repos.</p>
+          <ul>
+            <li>Copies skills into project-level shared skill folders.</li>
+            <li>Tracks bidirectional sync with a manifest.</li>
+            <li>Provides install, update, harvest, remove, and status commands.</li>
+          </ul>
+          <footer>
+            <span class="path">skill-sync/SKILL.md</span>
+            <a class="open-link" href="./skill-sync/SKILL.md">Open</a>
+          </footer>
+        </article>
+
+        <article class="skill" id="workflow-retro" data-tags="meta workflow retro review feedback improvements">
+          <header>
+            <h3>Workflow Retro</h3>
+            <span class="tag">meta</span>
+          </header>
+          <p>Analyzes review feedback patterns from a session and proposes improvements to skills, project config, and persistent retro logs.</p>
+          <ul>
+            <li>Collects evidence from the conversation, git log, and PR threads.</li>
+            <li>Classifies findings by preventability and target artifact.</li>
+            <li>Checks existing rules before proposing additions.</li>
+          </ul>
+          <footer>
+            <span class="path">workflow-retro/SKILL.md</span>
+            <a class="open-link" href="./workflow-retro/SKILL.md">Open</a>
+          </footer>
+        </article>
+      </div>
+
+      <div class="empty" id="emptyState">
+        No skills match this search. Try a workflow noun such as Linear, PR, commit, review, branch, or sync.
+      </div>
+    </section>
+
+    <section class="docs-band" id="resources">
+      <div class="callout">
+        <h2>How to keep this current</h2>
+        <p>
+          Treat each skill folder as the source of truth. When a skill changes, update its card summary here only if the
+          trigger, workflow lane, or major scripts changed. This page should stay skim-friendly instead of mirroring every line.
+        </p>
+      </div>
+      <div class="resources">
+        <h2>Local resources</h2>
+        <ul class="resource-list">
+          <li><a href="./sync-skills.sh"><code>script</code><span>Top-level sync helper for this skills directory.</span></a></li>
+          <li><a href="./gh-pr-comment-audit/scripts/review-pr-comments.sh"><code>script</code><span>GitHub review-thread fetch and audit helper.</span></a></li>
+          <li><a href="./git-add-commit-push/scripts/git-add-commit-push.sh"><code>script</code><span>Zero-input add, commit, and push flow.</span></a></li>
+          <li><a href="./workflow-retro/scripts/retro-log.sh"><code>script</code><span>Persistent workflow retro log helper.</span></a></li>
+          <li><a href="./docs/plans/2026-03-05-workflow-retro-plan.md"><code>plan</code><span>Workflow Retro implementation plan.</span></a></li>
+          <li><a href="./docs/plans/2026-03-05-workflow-retro-design.md"><code>plan</code><span>Workflow Retro design notes.</span></a></li>
+        </ul>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const search = document.querySelector("#skillSearch");
+    const filters = Array.from(document.querySelectorAll("[data-filter]"));
+    const cards = Array.from(document.querySelectorAll(".skill"));
+    const empty = document.querySelector("#emptyState");
+    let activeFilter = "all";
+
+    function normalize(value) {
+      return value.toLowerCase().trim();
+    }
+
+    function applyFilters() {
+      const query = normalize(search.value);
+      let visibleCount = 0;
+
+      cards.forEach((card) => {
+        const haystack = normalize(`${card.textContent} ${card.dataset.tags}`);
+        const matchesQuery = !query || haystack.includes(query);
+        const matchesFilter = activeFilter === "all" || normalize(card.dataset.tags).includes(activeFilter);
+        const visible = matchesQuery && matchesFilter;
+        card.hidden = !visible;
+        if (visible) visibleCount += 1;
+      });
+
+      empty.classList.toggle("is-visible", visibleCount === 0);
+    }
+
+    filters.forEach((button) => {
+      button.addEventListener("click", () => {
+        activeFilter = button.dataset.filter;
+        filters.forEach((item) => item.classList.toggle("is-active", item === button));
+        applyFilters();
+      });
+    });
+
+    search.addEventListener("input", applyFilters);
+  </script>
+</body>
+</html>
