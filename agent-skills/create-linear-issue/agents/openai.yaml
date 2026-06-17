@@ -1,0 +1,12 @@
+interface:
+  display_name: "Create Linear Issue"
+  short_description: "Research and create scoped Linear issues"
+  default_prompt: "Use $create-linear-issue to research this feature request, decide whether it is one issue or a parent with sub-issues, and create the Linear issue(s)."
+
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "linear"
+      description: "Linear MCP server"
+      transport: "streamable_http"
+      url: "https://mcp.linear.app/mcp"
