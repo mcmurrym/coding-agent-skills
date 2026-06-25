@@ -1,6 +1,6 @@
 ---
 name: linear-start-work
-description: Start work from a Linear issue link or key by loading full issue context (including comments, attachments, linked Linear documents/notes, parent issue, and child sub-issues), researching the issue against the codebase to determine the work required, optionally creating a git branch, and moving the issue to In Progress. Use when a user says “start work”, “spin up a branch”, or provides a Linear issue to begin coding.
+description: Start and carry out coding work from a Linear issue link or key by loading full issue context (including comments, attachments, linked Linear documents/notes, parent issue, and child sub-issues), researching the codebase, creating a branch when appropriate, moving the issue to In Progress, then implementing and validating the issue unless blocked by a real open question. Use when a user says “start work”, “spin up a branch”, or provides a Linear issue to begin coding.
 ---
 
 # Linear Start Work
@@ -75,6 +75,13 @@ git checkout "$branch"
 - Prefer status type `started` or the name “In Progress”.
 - Update the issue to that status after the branch is created (or after research if branch was skipped).
 
+7. Implement and validate the issue
+- If `Go/No-Go` is `go`, continue immediately into code changes without waiting for user confirmation. Treat `go` as permission to proceed, not as a stopping point.
+- Make the smallest implementation that satisfies the acceptance criteria and preserves the existing contracts identified in preflight.
+- Add or update focused tests for the acceptance-to-validation map, including the planned regression test.
+- Run the planned validation steps. If validation is too expensive or blocked, run the strongest targeted checks available and state the remaining risk.
+- Stop before coding only when requirements, ownership, production safety, or high-risk behavior is genuinely unclear.
+
 ## Notes
 
 - If any required data is missing (team, status, branch name), infer safely and note the assumption.
@@ -82,6 +89,7 @@ git checkout "$branch"
 - Keep the context summary concise and skimmable.
 - Keep the research output specific enough to implement without re-discovery.
 - For "small" issues, avoid shallow plans: include the depth gate in a compact format (3-7 bullets total).
+- Do not treat branch creation, status updates, or preflight output as the end of the task unless the user explicitly asked only for kickoff/setup.
 
 ## Required Output Template
 
