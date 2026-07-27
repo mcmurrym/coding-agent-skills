@@ -1,6 +1,6 @@
 ---
 name: gh-pr-comment-audit
-description: Audit GitHub pull request review comments against the branch's stated purpose, analyze upstream and downstream effects before changing code, prevent speculative mechanical scope creep, auto-fix only small safe issues, resolve justified threads, and present ambiguous or non-trivial decisions in chat.
+description: Audit GitHub pull request review comments against the branch's stated purpose, analyze upstream/downstream and practical capacity effects before changing code, prevent speculative mechanical scope creep, auto-fix only small safe issues, resolve justified threads, and present ambiguous or non-trivial decisions in chat.
 ---
 
 # GitHub PR Comment Audit
@@ -96,6 +96,7 @@ Use this evidence template (required before bucket placement):
 - Scope check: <file/path + line + old/new commit context if outdated>
 - Evidence: <specific code excerpt or API behavior confirming or disproving>
 - Purpose fit: <core-purpose / necessary supporting change / adjacent improvement + rationale>
+- Capacity reality: <reachable collection size and relevant service/query limit, or not applicable>
 - Outcome: <real / not real + rationale>
 
 If a finding cannot be verified from the available context, classify it as **non-trivial** and ask for confirmation, rather than resolving it as not real.
@@ -112,17 +113,34 @@ State the smallest fix that addresses the verified cause and list at least one r
 
 When a new review comment is caused by a previous review-driven fix, re-evaluate the whole chain against the original purpose. Prefer reverting or simplifying the prior fix when it created the new complexity, rather than layering another mechanical fix on top. Do not continue an iterative “fix the fix” chain without showing a concrete user/runtime impact and a bounded end state.
 
-Only after verification, classify each thread/comment into one of three buckets:
+#### Capacity and pagination reality check
+
+For a finding about an unbounded collection query, missing pagination, batch size, payload size, rate limit, memory pressure, timeout, or service degradation, do not assume the worst-case type shape is reachable. Establish:
+
+- the concrete business event and population the query serves;
+- the reachable upper bound from feature rules, tenant/account shape, selectors, ownership, retention, or existing limits;
+- the relevant service/query/transport threshold; and
+- whether the realistic bound approaches that threshold with meaningful headroom.
+
+Classify the finding as **not actionable in practice** when evidence shows the reachable size is safely bounded below the relevant threshold. A theoretical possibility alone is not sufficient to expand the branch with pagination, batching, or a generalized limit.
+
+If the repository and PR context cannot establish the realistic bound, pause and ask before fixing or resolving:
+
+> This finding assumes this query can return up to `<reviewer estimate>` items at once. Is that realistic for this feature? What is the expected upper bound for the collection, and is there a known service/query limit we need to stay below?
+
+Only after verification, classify each thread/comment into one of four buckets:
 
 1. **Not a real issue** — false positive, stale/outdated, style nit that doesn't apply, etc.
-2. **Real issue, trivial in-scope fix** — small one-liner or obvious change whose upstream/downstream impact is understood and bounded.
-3. **Real issue, non-trivial or out of scope** — needs thought, has trade-offs, touches multiple places, is speculative, or would expand the branch purpose.
+2. **Not actionable in practice** — theoretically possible, but concrete business and technical bounds keep it safely below the relevant operational limit.
+3. **Real issue, trivial in-scope fix** — small one-liner or obvious change whose upstream/downstream impact is understood and bounded.
+4. **Real issue, non-trivial or out of scope** — needs thought, has trade-offs, touches multiple places, is speculative, or would expand the branch purpose.
 
 ### Step 4 — Act on each bucket
 
 **Research gate for all classifications**
 
 - A thread is **Not a real issue** only if you can point to one concrete reason from evidence that the comment is invalid (for example, outdated thread, duplicate/already-fixed behavior, or the claimed behavior does not exist in the changed path).
+- A thread is **Not actionable in practice** only when the business context establishes a reachable bound and a relevant operational threshold shows sufficient headroom. If either is unknown, ask the capacity-reality question rather than guessing.
 - If evidence is incomplete or contradictory, default to **Real issue, non-trivial**.
 - A valid comment is not automatically in scope. If it is an adjacent improvement with no concrete impact on the branch contract, do not implement it; present it as **out of scope** and ask only if the user wants to expand the purpose.
 - Do not call a fix trivial just because the diff is small. It is trivial only when the cause, purpose fit, upstream/downstream effects, and regression check are all clear.
@@ -134,6 +152,14 @@ Only after verification, classify each thread/comment into one of three buckets:
 ```
 
 You may batch multiple thread IDs in one call.
+
+In targeted comment mode, follow the targeted resolution rule above before resolving the parent thread.
+
+**Not actionable in practice →** Document the realistic collection bound and the relevant operational limit in chat, then resolve the thread on GitHub. Do not add pagination, batching, or protective machinery solely for a disproven worst-case scenario:
+
+```bash
+"$SCRIPT" resolve <pr-url> --thread-id <id>
+```
 
 In targeted comment mode, follow the targeted resolution rule above before resolving the parent thread.
 
@@ -186,6 +212,14 @@ When a not-real/stale issue is resolved, summarize it with progressive bullets:
 > - <evidence that invalidates it>
 > - <resolution action taken>
 
+When a theoretical capacity issue is resolved as not actionable in practice, summarize it with progressive bullets:
+
+> **Resolved `<file>:<line>` as not actionable in practice**
+> - <reviewer’s worst-case concern>
+> - <business constraint and realistic maximum collection size>
+> - <relevant service/query limit and safety headroom>
+> - <resolution action taken>
+
 Use code blocks only when the code itself clarifies the suggested solution:
 
 > ```<lang>
@@ -197,8 +231,9 @@ Required minimum for every non-trivial item:
 1. Confirm whether the thread is outdated/stale.
 2. Include exact `path`, `line`, and `commit` references where available.
 3. State whether it is core-purpose, necessary supporting change, or adjacent improvement.
-4. Describe relevant upstream and downstream effects of the suggested fix.
-5. Include one concrete validation step that proves the impact.
+4. For capacity or pagination concerns, state the reachable collection size and relevant threshold, or ask the capacity-reality question.
+5. Describe relevant upstream and downstream effects of the suggested fix.
+6. Include one concrete validation step that proves the impact.
 
 ### Step 5 — Summary
 
@@ -207,6 +242,7 @@ After processing all threads, output a summary:
 | Category | Count | Action taken |
 |----------|-------|-------------|
 | Not real / stale | N | Resolved on GitHub |
+| Not actionable in practice | N | Bounded by evidence + resolved on GitHub |
 | Trivial in-scope fixes | N | Fixed in code + resolved on GitHub |
 | Non-trivial / out of scope | N | Presented above; no automatic code change |
 

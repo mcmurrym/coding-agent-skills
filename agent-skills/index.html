@@ -877,11 +877,12 @@
             <h3>GH PR Comment Audit</h3>
             <span class="tag">review</span>
           </header>
-          <p>Audits unresolved PR review comments against the branch purpose, traces fix impact, prevents speculative scope creep, and resolves only justified threads.</p>
+          <p>Audits unresolved PR review comments against the branch purpose, traces fix and collection-capacity impact, prevents speculative scope creep, and resolves only justified threads.</p>
           <ul>
             <li>Supports whole-PR, targeted discussion, thread ID, and next-unresolved modes.</li>
             <li>Requires a clear branch-purpose gate and evidence before classifying comments as real, stale, or out of scope.</li>
             <li>Analyzes upstream/downstream effects before making even small fixes.</li>
+            <li>Separates realistic collection-size risks from theoretical pagination or limit concerns.</li>
             <li>Uses GitHub thread resolution carefully when siblings remain actionable.</li>
           </ul>
           <footer>
