@@ -770,15 +770,16 @@
           </footer>
         </article>
 
-        <article class="skill" id="linear-start-work" data-tags="linear issue branch research start work implement">
+        <article class="skill" id="linear-start-work" data-tags="linear issue branch research start work implement queries pagination error handling rollback">
           <header>
             <h3>Linear Start Work</h3>
             <span class="tag">linear</span>
           </header>
-          <p>Starts and carries coding work from a Linear issue by loading full context, researching the repo, creating a branch, moving the issue forward, and implementing the accepted scope.</p>
+          <p>Starts and carries coding work from a Linear issue by loading full context, researching the repo, creating a branch, moving the issue forward, and implementing the accepted scope with query and failure-safety preflight.</p>
           <ul>
             <li>Reads parent, child, comment, document, and attachment context.</li>
             <li>Adds a risk and invariant gate before implementation.</li>
+            <li>Plans production-safe queries, pagination, error handling, and compensation.</li>
             <li>Continues into code changes and validation after a go preflight.</li>
           </ul>
           <footer>
