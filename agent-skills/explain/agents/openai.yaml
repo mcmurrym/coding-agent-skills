@@ -1,0 +1,4 @@
+interface:
+  display_name: "Explain"
+  short_description: "Simplify responses into causal bullet stories"
+  default_prompt: "Use $explain to explain this more simply with progressive bullets."
