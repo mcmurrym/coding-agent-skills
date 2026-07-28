@@ -1,7 +1,6 @@
 ---
 name: skill-sync
 description: Install, update, harvest, remove, and check status of skills from your private repo into project repos. Use when you want to share skills with a project, pull skill changes from a project, or check which skills are installed.
-args: "<command> [skill] [--all]"
 ---
 
 # Skill Sync
@@ -48,10 +47,11 @@ Show all installed skills and their sync state.
 
 ## Script Location
 
-The script lives at `scripts/skill-sync.sh` relative to this skill's directory. Use the known absolute path:
+Resolve the directory containing this `SKILL.md`, then use its bundled script:
 
 ```bash
-"/Users/mattmcmurry/coding-agent-skills/agent-skills/skill-sync/scripts/skill-sync.sh"
+SKILL_SYNC_SCRIPT="<skill-directory>/scripts/skill-sync.sh"
+"$SKILL_SYNC_SCRIPT" <command> [skill] [--all]
 ```
 
 ## Workflow

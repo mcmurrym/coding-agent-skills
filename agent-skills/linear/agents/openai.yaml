@@ -1,9 +1,9 @@
 interface:
   display_name: "Linear"
-  short_description: "Manage Linear issues"
+  short_description: "Manage Linear issues and projects"
   icon_small: "./assets/linear-small.svg"
   icon_large: "./assets/linear.png"
-  default_prompt: "Use Linear context to triage or update relevant issues for this task, with clear next actions."
+  default_prompt: "Use $linear to triage or update the relevant Linear issues for this task, with clear next actions."
 
 dependencies:
   tools:

@@ -1,7 +1,6 @@
 ---
 name: make-pr
 description: Create GitHub pull requests from the current branch, including commit/push flow when there are uncommitted changes and a concise branch summary for the PR description. Use when the user asks to make a PR, open a PR, or draft a PR for the current branch.
-args: "[draft] [review with <tool>]"
 ---
 
 # Make PR

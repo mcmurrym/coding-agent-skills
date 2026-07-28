@@ -18,9 +18,7 @@ Run a zero-input workflow to stage all changes, generate a commit message from t
 
 2. Run the scripted flow (recommended).
 - Resolve the script path from the skill directory, then run it directly:
-  - `"$CODEX_HOME/skills/git-add-commit-push/scripts/git-add-commit-push.sh"`
-  - If `CODEX_HOME` is unavailable, use the known absolute path:
-    - `"/Users/mattmcmurry/.codex/skills/git-add-commit-push/scripts/git-add-commit-push.sh"`
+  - `"<skill-directory>/scripts/git-add-commit-push.sh"`
 - Run with no arguments for the zero-input flow.
 - Use `--dry-run` only if you need a preview, otherwise proceed directly.
 
@@ -33,7 +31,8 @@ Run a zero-input workflow to stage all changes, generate a commit message from t
 Use the bundled script for consistency:
 
 ```bash
-"$CODEX_HOME/skills/git-add-commit-push/scripts/git-add-commit-push.sh" [--dry-run] [--no-push] [-r origin] [-b branch] [-m "message"]
+GIT_FLOW_SCRIPT="<skill-directory>/scripts/git-add-commit-push.sh"
+"$GIT_FLOW_SCRIPT" [--dry-run] [--no-push] [-r origin] [-b branch] [-m "message"]
 ```
 
 Behavior:

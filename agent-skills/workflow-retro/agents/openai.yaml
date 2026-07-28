@@ -1,4 +1,4 @@
 interface:
   display_name: "Workflow Retro"
-  short_description: "Analyze review feedback patterns and improve skills/configs to prevent recurring issues"
+  short_description: "Find review patterns and improve workflows"
   default_prompt: "Use $workflow-retro to analyze this session's review feedback, identify preventable patterns, and propose improvements to skills and project config files."

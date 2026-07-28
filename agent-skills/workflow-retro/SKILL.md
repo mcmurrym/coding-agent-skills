@@ -27,13 +27,7 @@ Collect findings from two sources:
 - If a PR URL is available in conversation context, fetch all threads (including resolved) using the fallback query:
 
 ```bash
-SCRIPT="$CODEX_HOME/agent-skills/gh-pr-comment-audit/scripts/review-pr-comments.sh"
-```
-
-If `CODEX_HOME` is not set:
-
-```bash
-SCRIPT="/Users/mattmcmurry/coding-agent-skills/agent-skills/gh-pr-comment-audit/scripts/review-pr-comments.sh"
+SCRIPT="<gh-pr-comment-audit-skill-directory>/scripts/review-pr-comments.sh"
 ```
 
 Note: The default fetch only returns UNRESOLVED threads. To see resolved threads too, run the fetch and check if threads were returned. If the PR has been fully resolved, the conversation and git log are the primary sources.
@@ -73,18 +67,12 @@ Deduplicate: if multiple files are symlinked to the same target, only read the c
 Read:
 - The canonical config file(s) that exist in the project
 - `.cursor/rules` if it exists
-- Any skill SKILL.md files relevant to the findings (resolve skill paths via `CODEX_HOME` or the absolute path `/Users/mattmcmurry/coding-agent-skills/agent-skills/<skill-name>/SKILL.md`)
+- Any `SKILL.md` files relevant to the findings (resolve each installed or checkout skill directory, then open `<skill-directory>/SKILL.md`)
 
 ### Step 4 — Check retro log for recurrence
 
 ```bash
-RETRO_SCRIPT="$CODEX_HOME/agent-skills/workflow-retro/scripts/retro-log.sh"
-```
-
-If `CODEX_HOME` is not set:
-
-```bash
-RETRO_SCRIPT="/Users/mattmcmurry/coding-agent-skills/agent-skills/workflow-retro/scripts/retro-log.sh"
+RETRO_SCRIPT="<skill-directory>/scripts/retro-log.sh"
 ```
 
 For each finding:
@@ -172,13 +160,7 @@ Output a summary table:
 Resolve the retro-log script path:
 
 ```bash
-RETRO_SCRIPT="$CODEX_HOME/agent-skills/workflow-retro/scripts/retro-log.sh"
-```
-
-If `CODEX_HOME` is not set:
-
-```bash
-RETRO_SCRIPT="/Users/mattmcmurry/coding-agent-skills/agent-skills/workflow-retro/scripts/retro-log.sh"
+RETRO_SCRIPT="<skill-directory>/scripts/retro-log.sh"
 ```
 
 ### Commands

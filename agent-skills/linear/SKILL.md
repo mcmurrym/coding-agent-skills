@@ -1,8 +1,6 @@
 ---
 name: linear
 description: Manage issues, projects & team workflows in Linear. Use when the user wants to read, create or update tickets in Linear.
-metadata:
-  short-description: Manage Linear issues
 ---
 
 # Linear

@@ -1,0 +1,4 @@
+interface:
+  display_name: "Skill Sync"
+  short_description: "Sync private skills with project-local copies"
+  default_prompt: "Use $skill-sync to check, install, update, harvest, or remove project-local skill copies."

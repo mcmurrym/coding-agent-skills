@@ -264,13 +264,7 @@ If the user asks you to fix any of the non-trivial issues:
 Resolve the script path:
 
 ```bash
-SCRIPT="$CODEX_HOME/agent-skills/gh-pr-comment-audit/scripts/review-pr-comments.sh"
-```
-
-If `CODEX_HOME` is not set, use the absolute workspace path:
-
-```bash
-SCRIPT="/Users/mattmcmurry/coding-agent-skills/agent-skills/gh-pr-comment-audit/scripts/review-pr-comments.sh"
+SCRIPT="<skill-directory>/scripts/review-pr-comments.sh"
 ```
 
 ### Commands
