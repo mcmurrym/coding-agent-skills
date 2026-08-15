@@ -25,7 +25,7 @@ Required checks:
    - Confirm the script still discovers the intended skill directories and skips
      non-skill folders.
    - If a skill is renamed or removed, make sure stale symlink cleanup still
-     removes the old name for Claude, Codex, and Gemini skill directories.
+     removes the old name for Claude, Codex, Gemini, and OpenCode skill directories.
    - If a new agent platform, destination, generated file, or directory shape is
      introduced, update the sync script in the same change.
 
@@ -38,7 +38,7 @@ Required checks:
 
 - Prefer small, focused updates that keep each skill self-contained.
 - Do not commit machine-local symlink outputs from `~/.claude/skills`,
-  `~/.codex/skills`, or `~/.gemini/skills`.
+  `~/.codex/skills`, `~/.gemini/skills`, or `~/.config/opencode/skills`.
 - Keep shell scripts portable Bash with `set -euo pipefail` unless a script has a
   documented reason to differ.
 - Avoid replacing user changes. If the worktree contains unrelated edits, leave

@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
-# sync-skills.sh — Sync shared skills to Claude Code, Codex CLI, and Gemini CLI
+# sync-skills.sh — Sync shared skills to Claude Code, Codex CLI, Gemini CLI, and OpenCode
 #
 # Claude Code:  ~/.claude/skills/ (per-skill symlinks)
 # Codex CLI:    ~/.codex/skills/  (per-skill symlinks, preserves .system/)
 # Gemini CLI:   ~/.gemini/skills/ (per-skill symlinks)
+# OpenCode:     ~/.config/opencode/skills/ (per-skill symlinks, when installed)
 #
 # Usage: ./sync-skills.sh
 
@@ -13,6 +14,8 @@ SHARED_DIR="$(cd "$(dirname "$0")" && pwd)"
 CLAUDE_SKILLS="$HOME/.claude/skills"
 CODEX_SKILLS="$HOME/.codex/skills"
 GEMINI_SKILLS="$HOME/.gemini/skills"
+OPENCODE_CONFIG_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/opencode"
+OPENCODE_SKILLS="$OPENCODE_CONFIG_DIR/skills"
 
 echo "Shared skills directory: $SHARED_DIR"
 
@@ -158,6 +161,55 @@ else
     echo "Gemini CLI: all symlinks up to date"
   else
     echo "Gemini CLI: added $added, removed $removed"
+  fi
+fi
+
+# --- OpenCode ---
+# OpenCode uses the XDG config directory for global skills. Create it only when
+# OpenCode is installed (or has already created its config directory).
+if ! command -v opencode >/dev/null 2>&1 && [ ! -d "$OPENCODE_CONFIG_DIR" ]; then
+  echo "OpenCode: not installed, skipping."
+else
+  mkdir -p "$OPENCODE_SKILLS"
+
+  added=0
+  removed=0
+
+  # Remove stale symlinks (broken, or pointing into SHARED_DIR for a skill that no longer exists)
+  for link in "$OPENCODE_SKILLS"/*; do
+    [ -L "$link" ] || continue
+    target=$(readlink "$link")
+    if [ ! -e "$link" ]; then
+      name=$(basename "$link")
+      rm "$link"
+      echo "OpenCode: removed broken link $name"
+      ((removed += 1))
+    elif [[ "$target" == "$SHARED_DIR"/* ]] && [ ! -d "$SHARED_DIR/$(basename "$link")" ]; then
+      name=$(basename "$link")
+      rm "$link"
+      echo "OpenCode: removed stale link $name"
+      ((removed += 1))
+    fi
+  done
+
+  # Add missing symlinks
+  for skill_dir in "$SHARED_DIR"/*/; do
+    [ -d "$skill_dir" ] || continue
+    name=$(basename "$skill_dir")
+    [ "$name" = ".git" ] && continue
+    [ ! -f "$skill_dir/SKILL.md" ] && continue
+    link="$OPENCODE_SKILLS/$name"
+    if [ ! -e "$link" ]; then
+      ln -s "$skill_dir" "$link"
+      echo "OpenCode: linked $name"
+      ((added += 1))
+    fi
+  done
+
+  if [ "$added" -eq 0 ] && [ "$removed" -eq 0 ]; then
+    echo "OpenCode: all symlinks up to date"
+  else
+    echo "OpenCode: added $added, removed $removed"
   fi
 fi
 
