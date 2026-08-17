@@ -1,6 +1,6 @@
 ---
 name: gh-pr-comment-audit
-description: Audit GitHub pull request review comments against the branch's stated purpose, analyze upstream/downstream and practical capacity effects before changing code, prevent speculative mechanical scope creep, auto-fix only small safe issues, resolve justified threads, and present ambiguous or non-trivial decisions in chat.
+description: Audit GitHub pull request review comments against the branch's stated purpose, analyze upstream/downstream and practical capacity effects before changing code, prevent speculative mechanical scope creep, auto-fix only small safe issues, resolve justified threads, and offer interactive research, resolution, implementation, and shipping actions when the runtime supports response controls.
 ---
 
 # GitHub PR Comment Audit
@@ -64,6 +64,25 @@ When explaining an issue, fix made, or suggested fix, prefer progressive bullet 
 - Then give the validation step or remaining trade-off.
 
 Keep bullets concise and concrete. Avoid dense paragraphs for problem explanations and solutions unless the user explicitly asks for prose.
+
+## Interactive decision controls
+
+When the runtime exposes structured response controls, use the following control flow for each **Real issue, non-trivial or out of scope** item. Bind every control to the exact PR URL, review thread ID, selected comment or discussion ID, file/line, branch-purpose statement, and issue analysis so later actions cannot affect a sibling thread.
+
+1. After presenting the non-trivial issue, offer:
+   - **Explain and Research** — invoke `$explain` on the bound issue information and research the most correct, straightforward fix without unnecessary complexity. Do not change code or GitHub state during this action. End the researched response with **Make it so** and **Mark issue resolved** controls.
+   - **Mark issue resolved** — resolve the bound GitHub review thread with the bundled script and make no code changes. Treat the user's control selection as authorization for this GitHub write.
+2. After **Explain and Research**, offer:
+   - **Make it so** — implement the recommended fix, repeat the required purpose and fix-impact analysis, run the relevant validation, and resolve the bound thread only after the fix succeeds. End the successful response with **Git Add Commit Push** when the shipping safety gate below passes.
+   - **Mark issue resolved** — resolve the bound GitHub review thread with the bundled script and make no code changes.
+3. After **Make it so** succeeds, offer:
+   - **Git Add Commit Push** — invoke `$git-add-commit-push` to inspect the diff, generate a commit message, stage all changes, commit, push the current branch to `origin`, and report the commit hash.
+
+Before offering either **Mark issue resolved** control, apply the targeted resolution rule: do not offer it when resolving the parent thread would also resolve actionable sibling comments. Explain why resolution is unavailable instead.
+
+Before offering **Git Add Commit Push**, inspect the worktree and confirm it contains only the intended audit fix. Because `$git-add-commit-push` stages all changes, do not offer or invoke it when unrelated changes are present; identify those changes and ask the user how to handle them.
+
+If structured response controls are unavailable, present the same action labels as concise plain-text choices and wait for the user to select one. Do not emit client-specific control syntax as ordinary Markdown. Never imply that merely displaying a control performed its action.
 
 ## Workflow
 
@@ -197,6 +216,8 @@ In targeted comment mode, follow the targeted resolution rule above before resol
 > - <upstream/downstream effects>
 > - <remaining risk, alternative, scope boundary, or reason to ask the user>
 
+Then offer the **Explain and Research** and **Mark issue resolved** actions using the interactive decision-control rules above.
+
 When a trivial in-scope fix was made, summarize it with progressive bullets:
 
 > **Fixed `<file>:<line>`**
@@ -252,6 +273,7 @@ If the user asks you to fix any of the non-trivial issues:
 1. Make the code changes.
 2. Reconfirm the expanded purpose and repeat the upstream/downstream impact analysis.
 3. Resolve the corresponding threads on GitHub.
+4. After successful validation and resolution, offer **Git Add Commit Push** only when its shipping safety gate passes.
 
 ## Setup
 

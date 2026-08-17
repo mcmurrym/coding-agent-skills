@@ -1,4 +1,4 @@
 interface:
   display_name: "Make PR"
   short_description: "Create PRs with branch summaries"
-  default_prompt: "Use $make-pr to create a PR from the current branch with a concise summary as the description."
+  default_prompt: "Use $make-pr to create a PR from the current branch with a concise summary, then offer a runtime-supported GH PR Comment Audit follow-up action."
