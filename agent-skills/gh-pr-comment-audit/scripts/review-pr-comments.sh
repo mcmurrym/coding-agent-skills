@@ -166,7 +166,8 @@ fetch_threads() {
   local payload
   local selectors
 
-  if ! payload="$(gh api graphql -f query="$(fetch_query)" -f owner="$PR_OWNER" -f repo="$PR_REPO" -F number="$PR_NUMBER" 2>/dev/null)"; then
+  if ! payload="$(gh api graphql -f query="$(fetch_query)" -f owner="$PR_OWNER" -f repo="$PR_REPO" -F number="$PR_NUMBER" 2>/dev/null)" \
+    || jq -e '.errors | length > 0' >/dev/null 2>&1 <<<"$payload"; then
     payload="$(gh api graphql -f query="$(fetch_query_fallback)" -f owner="$PR_OWNER" -f repo="$PR_REPO" -F number="$PR_NUMBER")"
   fi
 
