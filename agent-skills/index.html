@@ -862,12 +862,12 @@
             <h3>Make PR</h3>
             <span class="tag">github</span>
           </header>
-          <p>Creates GitHub pull requests from the current branch, including commit and push handling, then offers a supported PR comment-audit follow-up.</p>
+          <p>Creates GitHub pull requests from the current branch, including commit and push handling, then renders a Codex HTML button for PR comment auditing.</p>
           <ul>
             <li>Discovers the repository default branch before diffing.</li>
             <li>Creates concise branch summaries for the PR body.</li>
             <li>Supports draft PRs and optional review tool triggering.</li>
-            <li>Offers a bound GH PR Comment Audit action after successful creation.</li>
+            <li>Renders a bound GH PR Comment Audit follow-up button after successful creation.</li>
           </ul>
           <footer>
             <span class="path">make-pr/SKILL.md</span>
@@ -880,14 +880,14 @@
             <h3>GH PR Comment Audit</h3>
             <span class="tag">review</span>
           </header>
-          <p>Audits unresolved PR review comments against the branch purpose, traces fix and collection-capacity impact, prevents speculative scope creep, and offers supported controls to research, resolve, implement, or ship findings.</p>
+          <p>Audits unresolved PR review comments against the branch purpose, traces fix and collection-capacity impact, and renders per-issue Codex HTML actions for research, resolution, implementation, and shipping.</p>
           <ul>
             <li>Supports whole-PR, targeted discussion, thread ID, and next-unresolved modes.</li>
             <li>Requires a clear branch-purpose gate and evidence before classifying comments as real, stale, or out of scope.</li>
             <li>Analyzes upstream/downstream effects before making even small fixes.</li>
             <li>Separates realistic collection-size risks from theoretical pagination or limit concerns.</li>
             <li>Uses GitHub thread resolution carefully when siblings remain actionable.</li>
-            <li>Offers bound, runtime-supported actions for explaining, resolving, implementing, and shipping non-trivial findings.</li>
+            <li>Renders independently bound HTML buttons for every non-trivial finding, using assessment-only explain prompts, literal artifact-backed Make it so follow-ups, and stale-state safeguards.</li>
           </ul>
           <footer>
             <span class="path">gh-pr-comment-audit/SKILL.md</span>

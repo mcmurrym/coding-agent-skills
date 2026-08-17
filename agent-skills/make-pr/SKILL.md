@@ -1,6 +1,6 @@
 ---
 name: make-pr
-description: Create GitHub pull requests from the current branch, including commit/push flow when there are uncommitted changes, a concise branch summary for the PR description, and a runtime-supported follow-up control for auditing PR review comments. Use when the user asks to make a PR, open a PR, or draft a PR for the current branch.
+description: Create GitHub pull requests from the current branch, including commit/push flow when there are uncommitted changes, a concise branch summary for the PR description, and a Codex HTML follow-up button for auditing PR review comments when inline visualizations are available. Use when the user asks to make a PR, open a PR, or draft a PR for the current branch.
 ---
 
 # Make PR
@@ -40,9 +40,9 @@ Search available MCP tools for one whose name contains the requested tool name (
 Return the PR URL and the title/body used. If a review tool was triggered, include that in the report. If the PR could not be created because `gh` is missing, authentication failed, or no remote exists, explain the blocker and ask for the missing info.
 
 8. Offer the PR comment audit follow-up.
-After a PR is created successfully, offer a **GH PR Comment Audit** response control when the runtime supports structured controls. Bind the control to the exact created PR URL, repository, and PR number. When selected, invoke `$gh-pr-comment-audit` for that PR; do not start the audit merely because the control was displayed.
+After a PR is created successfully and the Codex inline visualization surface and `$visualize` skill are available, load and follow `$visualize`. Write a compact HTML fragment to the task-owned visualization directory outside the repository, emit its `visualize{"path":"<absolute-path>"}` content reference in the same response, and do not print raw HTML in chat. Include a native **GH PR Comment Audit** button, follow the visualization design system, and call `window.openai.sendFollowUpMessage({ prompt, title })` from an event listener. Bind the follow-up prompt to the exact created PR URL, repository, and PR number and invoke `$gh-pr-comment-audit` for that PR. Do not use an inline `onclick`, network request, or `request_user_input`, and do not start the audit merely because the button was displayed.
 
-If structured response controls are unavailable, present **GH PR Comment Audit** as a concise plain-text follow-up action and wait for the user to select it. Do not emit client-specific control syntax as ordinary Markdown.
+If the inline visualization surface or `window.openai.sendFollowUpMessage` is unavailable, present **GH PR Comment Audit** as a concise plain-text follow-up action and wait for the user to select it.
 
 ## Command patterns
 

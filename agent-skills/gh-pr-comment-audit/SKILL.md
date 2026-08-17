@@ -1,6 +1,6 @@
 ---
 name: gh-pr-comment-audit
-description: Audit GitHub pull request review comments against the branch's stated purpose, analyze upstream/downstream and practical capacity effects before changing code, prevent speculative mechanical scope creep, auto-fix only small safe issues, resolve justified threads, and offer interactive research, resolution, implementation, and shipping actions when the runtime supports response controls.
+description: Audit GitHub pull request review comments against the branch's stated purpose, analyze upstream/downstream and practical capacity effects before changing code, prevent speculative mechanical scope creep, auto-fix only small safe issues, resolve justified threads, and render per-issue Codex HTML actions for research, resolution, implementation, and shipping when inline visualizations are available.
 ---
 
 # GitHub PR Comment Audit
@@ -65,24 +65,61 @@ When explaining an issue, fix made, or suggested fix, prefer progressive bullet 
 
 Keep bullets concise and concrete. Avoid dense paragraphs for problem explanations and solutions unless the user explicitly asks for prose.
 
-## Interactive decision controls
+## Interactive follow-up UI
 
-When the runtime exposes structured response controls, use the following control flow for each **Real issue, non-trivial or out of scope** item. Bind every control to the exact PR URL, review thread ID, selected comment or discussion ID, file/line, branch-purpose statement, and issue analysis so later actions cannot affect a sibling thread.
+When the Codex inline visualization surface and the `$visualize` skill are available, load and follow `$visualize` before creating the response. Write one HTML fragment to the task-owned visualization directory outside the repository and emit its `visualize{"path":"<absolute-path>"}` content reference in the same response. Do not print raw HTML in chat.
 
-1. After presenting the non-trivial issue, offer:
-   - **Explain and Research** — invoke `$explain` on the bound issue information and research the most correct, straightforward fix without unnecessary complexity. Do not change code or GitHub state during this action. End the researched response with **Make it so** and **Mark issue resolved** controls.
-   - **Mark issue resolved** — resolve the bound GitHub review thread with the bundled script and make no code changes. Treat the user's control selection as authorization for this GitHub write.
-2. After **Explain and Research**, offer:
-   - **Make it so** — implement the recommended fix, repeat the required purpose and fix-impact analysis, run the relevant validation, and resolve the bound thread only after the fix succeeds. End the successful response with **Git Add Commit Push** when the shipping safety gate below passes.
-   - **Mark issue resolved** — resolve the bound GitHub review thread with the bundled script and make no code changes.
-3. After **Make it so** succeeds, offer:
-   - **Git Add Commit Push** — invoke `$git-add-commit-push` to inspect the diff, generate a commit message, stage all changes, commit, push the current branch to `origin`, and report the commit hash.
+Render all **Real issue, non-trivial or out of scope** items in that fragment. Use one semantic, unframed section per issue and place that issue's actions immediately below its analysis. Seven issues therefore render fourteen independently bound buttons, subject to the resolution safety rule below.
 
-Before offering either **Mark issue resolved** control, apply the targeted resolution rule: do not offer it when resolving the parent thread would also resolve actionable sibling comments. Explain why resolution is unavailable instead.
+Use native `<button type="button">` elements and the visualization design-system classes. Attach event listeners in the fragment script and call:
 
-Before offering **Git Add Commit Push**, inspect the worktree and confirm it contains only the intended audit fix. Because `$git-add-commit-push` stages all changes, do not offer or invoke it when unrelated changes are present; identify those changes and ask the user how to handle them.
+```js
+await window.openai.sendFollowUpMessage({ prompt, title });
+```
 
-If structured response controls are unavailable, present the same action labels as concise plain-text choices and wait for the user to select one. Do not emit client-specific control syntax as ordinary Markdown. Never imply that merely displaying a control performed its action.
+Do not use inline `onclick` handlers, network requests, client-specific Markdown, or `request_user_input`. Keep issue data out of executable markup; safely serialize it into the fragment script and select it by a stable issue key. Retain the complete bound issue record in the HTML artifact so a concise follow-up can recover it from the immediately preceding visualization.
+
+Bind every button's artifact record to the exact PR URL and number, review thread ID, selected comment or discussion ID, file/line, commit, branch-purpose statement, classification, and issue analysis. Keep operational metadata and instructions in that record instead of serializing them into the visible **Make it so** prompt.
+
+For each initial non-trivial issue, render:
+
+- **Explain and Research** — send a follow-up prompt that invokes only `$explain` and contains the assessment this audit produced for the selected issue. Do not copy or re-fetch the GitHub review-comment body and do not include PR, thread, branch-purpose, or action-instruction metadata in the visible prompt. Build one assessment text block first and reuse it verbatim in both the rendered issue section and the button prompt; do not regenerate, summarize, normalize capitalization, or reorder it for the prompt. Resolve symlinks for `$explain` and prefer its canonical repository-source `SKILL.md` path over an installation symlink such as `~/.codex/skills/explain/SKILL.md`. Construct the prompt exactly in this shape:
+
+  ```text
+  [$explain](<absolute-explain-skill-path>) <assessment title>
+  <Current or Outdated> · <priority when known> · <purpose classification>
+
+  <path>:<line> at <commit>
+  <assessment symptom or reviewer claim>
+  <assessment code path or condition>
+  <assessment user/runtime impact>
+  <assessment smallest safe direction>
+  <assessment regression proof>
+
+  and research the most correct and straightforward, non-overly-complex fix.
+  ```
+
+  Before building the shared assessment block, format its status and classification with the exact user-facing labels used by this skill: **Current**, **Outdated**, **Core-purpose correctness**, **Necessary supporting change**, or **Adjacent improvement**. Then preserve the block's wording, capitalization, punctuation, and ordering verbatim between the rendered issue section and prompt; omit unknown metadata instead of inventing it. Make no code or GitHub changes. The new turn may inspect the repository to research the fix. Carry the original bound PR/thread identity forward from conversation context when rendering that response's **Make it so** and **Mark issue resolved** buttons, but do not add it to the visible `$explain` prompt.
+- **Mark issue resolved** — send a follow-up prompt that invokes `$gh-pr-comment-audit` in targeted mode, re-fetches the bound thread, and resolves it without code changes. Treat the clicked follow-up message as explicit authorization for this GitHub write.
+
+After **Explain and Research**, render:
+
+- **Make it so** — send exactly `Make it so` as the complete follow-up prompt. Do not add a skill invocation, link, punctuation, PR URL, IDs, file/commit metadata, branch purpose, assessment, recommendation, validation plan, stale-state instructions, or any other text. Render this post-research artifact for exactly one issue and retain that issue's complete binding plus researched recommendation in its serialized issue record.
+- **Mark issue resolved** — use the same targeted resolution behavior as the initial control.
+
+When the user sends the exact **Make it so** follow-up from this artifact, continue the current audit workflow: read the immediately preceding interactive artifact and recover its single bound issue record. If there is no artifact, more than one issue is eligible, or the binding or researched recommendation is incomplete, stop and ask the user to rerun **Explain and Research** for the intended issue; never guess from nearby conversation. Once the record is unambiguous, re-fetch only its selected thread with this skill's bundled script, stop if it is already resolved or materially changed, implement the recorded recommended fix, repeat the purpose and fix-impact analysis, run the relevant validation, and resolve the thread only after success. End the successful response with **Git Add Commit Push** when the shipping safety gate passes.
+
+After **Make it so** succeeds, render:
+
+- **Git Add Commit Push** — send a follow-up prompt that invokes `$git-add-commit-push`, rechecks that the worktree contains only the intended audit fix, then inspects the diff, generates a commit message, stages all changes, commits, pushes the current branch to `origin`, and reports the commit hash.
+
+Before rendering either **Mark issue resolved** button, apply the targeted resolution rule. If resolving the parent thread would also resolve actionable sibling comments, omit or disable the button and show a concise reason in that issue section.
+
+Before rendering **Git Add Commit Push**, confirm the worktree contains only the intended audit fix. Because `$git-add-commit-push` stages all changes, do not render or invoke it when unrelated changes are present; identify those changes and ask the user how to handle them.
+
+If the inline visualization surface or `window.openai.sendFollowUpMessage` is unavailable, present the same action labels as concise plain-text choices and wait for the user to select one. Never imply that displaying a button performed its action.
+
+`window.openai.sendFollowUpMessage` is the supported host API for this interaction. It may stage the generated prompt in the Codex composer for user submission. No supported auto-submit option is currently exposed; do not invent one or simulate a click on the composer.
 
 ## Workflow
 
@@ -192,7 +229,7 @@ You may batch multiple thread IDs in one call. No comment is needed — just res
 
 In targeted comment mode, follow the targeted resolution rule above before resolving the parent thread.
 
-**Real issue, non-trivial or out of scope →** Do NOT fix or resolve automatically. Instead, present the analysis in chat using this format:
+**Real issue, non-trivial or out of scope →** Do NOT fix or resolve automatically. When inline HTML is available, render all non-trivial items and their per-issue actions in one fragment using the interactive follow-up UI rules. Preserve the following content for every issue. When inline HTML is unavailable, present it in chat using this format:
 
 > **`<file>:<line>`** — <one-line summary of the review comment>
 >
@@ -216,7 +253,7 @@ In targeted comment mode, follow the targeted resolution rule above before resol
 > - <upstream/downstream effects>
 > - <remaining risk, alternative, scope boundary, or reason to ask the user>
 
-Then offer the **Explain and Research** and **Mark issue resolved** actions using the interactive decision-control rules above.
+Then offer the **Explain and Research** and **Mark issue resolved** actions using the interactive follow-up UI rules above.
 
 When a trivial in-scope fix was made, summarize it with progressive bullets:
 

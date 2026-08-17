@@ -1,4 +1,4 @@
 interface:
   display_name: "GH PR Comment Audit"
   short_description: "Audit PR comments with scope and capacity context"
-  default_prompt: "Use $gh-pr-comment-audit to establish the branch purpose, audit unresolved review findings, auto-fix only bounded in-scope issues, resolve justified threads, and offer runtime-supported controls to research, resolve, implement, or ship non-trivial fixes."
+  default_prompt: "Use $gh-pr-comment-audit to establish the branch purpose, audit unresolved findings, auto-fix only bounded in-scope issues, and render per-issue Codex HTML actions with assessment-only explain prompts and literal artifact-backed Make it so follow-ups."
