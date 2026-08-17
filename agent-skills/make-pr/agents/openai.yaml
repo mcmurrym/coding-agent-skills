@@ -1,4 +1,4 @@
 interface:
   display_name: "Make PR"
   short_description: "Create PRs with branch summaries"
-  default_prompt: "Use $make-pr to create a PR from the current branch with a concise summary, then render a Codex HTML button that starts $gh-pr-comment-audit for the created PR."
+  default_prompt: "Use $make-pr to create a PR from the current branch with a concise summary, then render a Codex HTML button whose follow-up contains only the $gh-pr-comment-audit skill callout."

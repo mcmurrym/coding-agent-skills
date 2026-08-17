@@ -111,7 +111,7 @@ When the user sends the exact **Make it so** follow-up from this artifact, conti
 
 After **Make it so** succeeds, render:
 
-- **Git Add Commit Push** — send a follow-up prompt that invokes `$git-add-commit-push`, rechecks that the worktree contains only the intended audit fix, then inspects the diff, generates a commit message, stages all changes, commits, pushes the current branch to `origin`, and reports the commit hash.
+- **Git Add Commit Push** — resolve symlinks for `$git-add-commit-push`, prefer its canonical repository-source `SKILL.md` path, and send exactly `[$git-add-commit-push](<absolute-git-add-commit-push-skill-path>)` as the complete follow-up prompt. Do not add punctuation, worktree instructions, diff or commit instructions, issue metadata, or any other text.
 
 Before rendering either **Mark issue resolved** button, apply the targeted resolution rule. If resolving the parent thread would also resolve actionable sibling comments, omit or disable the button and show a concise reason in that issue section.
 
