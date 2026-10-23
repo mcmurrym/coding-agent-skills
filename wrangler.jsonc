@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "agent-skills-docs",
+  "compatibility_date": "2026-07-28",
+  "workers_dev": false,
+  "routes": [
+    {
+      "pattern": "agent-skills.exnovo.app",
+      "custom_domain": true
+    }
+  ],
+  "assets": {
+    "directory": "./agent-skills",
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page"
+  }
+}
